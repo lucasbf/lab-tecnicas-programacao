@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UNIDADE III — Subrotinas em C</title>
+<style>
+  :root {
+    --bg: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e1e6d8;
+    --border: #c7d0bb;
+    --ink: #1e2a22;
+    --ink-dim: #57634e;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #d1652b;
+    --shadow: 0 1px 2px rgba(30, 42, 34, 0.06), 0 6px 20px rgba(30, 42, 34, 0.05);
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10140e;
+      --surface: #171d14;
+      --surface-2: #1f2819;
+      --border: #38452e;
+      --ink: #eaeee1;
+      --ink-dim: #a7b39a;
+      --accent: #6fcf9e;
+      --accent-2: #e2884a;
+      --accent-2-bright: #eb9a5f;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10140e;
+    --surface: #171d14;
+    --surface-2: #1f2819;
+    --border: #38452e;
+    --ink: #eaeee1;
+    --ink-dim: #a7b39a;
+    --accent: #6fcf9e;
+    --accent-2: #e2884a;
+    --accent-2-bright: #eb9a5f;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent); color: var(--surface); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  header.page-header {
+    padding: 4rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    background: var(--accent-2-bright);
+    border-radius: 2px;
+  }
+
+  h1.title {
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.9rem);
+    letter-spacing: -0.01em;
+    margin: 0.6rem 0 0.7rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1.15rem;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  main { padding: 2.5rem 0 5rem; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 2.4rem 0 1rem;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  .card-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .card.is-placeholder {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+    border-style: dashed;
+  }
+  .card.is-placeholder:hover { transform: none; }
+
+  .card-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .card.is-placeholder .card-kicker { color: var(--ink-dim); }
+
+  .card-title {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 0.35rem 0 0.4rem;
+  }
+
+  .card-desc {
+    font-family: var(--font-serif);
+    color: var(--ink-dim);
+    font-size: 0.98rem;
+    margin: 0;
+  }
+
+  footer.page-footer {
+    padding: 2rem 0 3rem;
+    border-top: 1px solid var(--border);
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="page-header">
+      <div class="eyebrow">Unaerp · Lab. de Tec. de Programação</div>
+      <h1 class="title">UNIDADE III <span class="dim">— Subrotinas em C</span></h1>
+      <p class="subtitle">Recursos de estudo desta unidade, organizados por semana de aula.</p>
+    </header>
+
+    <main>
+      <p class="section-label">Semana 1 — Fundamentos de funções</p>
+      <ul class="card-list">
+        <li>
+          <a class="card" href="unidade-iii-semana1-subrotinas.html">
+            <div class="card-kicker">Guia de estudo</div>
+            <h2 class="card-title">Subrotinas em C</h2>
+            <p class="card-desc">Protótipo, definição e chamada; funções void x com retorno; parâmetros e passagem por valor; escopo local e global; pilha de execução.</p>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="unidade-iii-semana1-print.html">
+            <div class="card-kicker">Versão para impressão</div>
+            <h2 class="card-title">Subrotinas em C — apostila</h2>
+            <p class="card-desc">Mesmo conteúdo do guia, formatado para papel A4, com sumário, quizzes estáticos e gabarito comentado no final.</p>
+          </a>
+        </li>
+      </ul>
+
+      <p class="section-label">Semana 2 — Referência, arrays e strings</p>
+      <ul class="card-list">
+        <li>
+          <a class="card" href="unidade-iii-semana2-referencia.html">
+            <div class="card-kicker">Guia de estudo</div>
+            <h2 class="card-title">Passagem por Referência em C</h2>
+            <p class="card-desc">Ponteiros como parâmetros (endereços, & e *), por que trocar valores sem ponteiro não funciona, decaimento de vetores/matrizes/strings para ponteiro, e uma simulação passo a passo da troca de dois valores.</p>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="unidade-iii-semana2-print.html">
+            <div class="card-kicker">Versão para impressão</div>
+            <h2 class="card-title">Passagem por Referência em C — apostila</h2>
+            <p class="card-desc">Mesmo conteúdo do guia, formatado para papel A4, com sumário, quizzes estáticos e gabarito comentado no final.</p>
+          </a>
+        </li>
+      </ul>
+
+      <p class="section-label">Semana 3 — Micro-projeto</p>
+      <ul class="card-list">
+        <li>
+          <div class="card is-placeholder" aria-disabled="true">
+            <div class="card-kicker">Em breve</div>
+            <h2 class="card-title">Especificação, implementação e entrega</h2>
+            <p class="card-desc">Conteúdo ainda não publicado.</p>
+          </div>
+        </li>
+      </ul>
+    </main>
+
+    <footer class="page-footer">UNIDADE III</footer>
+  </div>
+</body>
+</html>

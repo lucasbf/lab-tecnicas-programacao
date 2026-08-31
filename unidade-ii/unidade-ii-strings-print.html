@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Strings em C — Guia de Estudo (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .byte-strip {
+    display: flex;
+    gap: 4px;
+    margin-top: 1.3rem;
+  }
+  .byte-strip span {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    width: 1.7em;
+    height: 1.7em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--ink-dim);
+    background: var(--surface);
+  }
+  .byte-strip span.is-null {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards for int/float/char */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.82rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink); }
+
+  /* ASCII chips */
+  .ascii-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 0.9rem 0 1.1rem;
+  }
+  .ascii-chip {
+    font-family: var(--font-mono);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.78rem;
+  }
+  .ascii-chip .val { color: var(--ink-dim); }
+  .ascii-chip .arrow { color: var(--accent-2); }
+  .ascii-chip .glyph { font-weight: 700; color: var(--accent); }
+  .ascii-chip.is-null .glyph { color: var(--accent-2); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-empty-text { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-newline { fill: var(--surface); stroke: var(--accent-2); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .chip-newline-text { fill: var(--accent-2); font-family: var(--font-mono); font-weight: 700; }
+  .bracket { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade II · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Strings em C<br><span class="dim">vetores de char com um fim marcado</span></h1>
+    <p class="subtitle">Não existe o tipo <code>string</code> em C — mas existe um jeito de fingir que existe. Este guia mostra como, byte a byte.</p>
+    <div class="byte-strip" aria-hidden="true">
+      <span>c</span><span>a</span><span>r</span><span>a</span><span>m</span><span>b</span><span>a</span><span class="is-null">\0</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#tipos"><span class="num">01</span> Tipos nativos e o problema da string</a></li>
+      <li><a href="#representacao"><span class="num">02</span> Representação de strings em C</a></li>
+      <li><a href="#inicializacao"><span class="num">03</span> Inicialização de strings</a></li>
+      <li><a href="#io"><span class="num">04</span> Imprimindo e lendo strings</a></li>
+      <li><a href="#stringh"><span class="num">05</span> Funções da biblioteca string.h</a></li>
+      <li><a href="#gabarito"><span class="num">06</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="tipos">
+      <h2>Tipos nativos e o problema da string</h2>
+      <p>Até o momento vimos alguns tipos de variáveis nativos da linguagem C. Os principais são:</p>
+
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">int</div>
+          <p>Conjunto de bytes interpretado como número inteiro.</p>
+          <p class="example">23, 56, 87643, -23948</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">float</div>
+          <p>Conjunto de bytes interpretado como número real (ponto flutuante).</p>
+          <p class="example">23.5, 987.32, -2654.6</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">char</div>
+          <p>Um único byte interpretado como caractere — na prática, um inteiro de 0 a 255.</p>
+          <p class="example">'a', 'Z', '7', '$'</p>
+        </div>
+      </div>
+
+      <p>O nome <em>float</em> vem justamente da capacidade desse tipo de "flutuar" a posição do ponto decimal dentro da sua representação em bits — é assim que ele consegue expressar tanto números muito pequenos quanto muito grandes com a mesma quantidade de bytes.</p>
+
+      <p>Já o <code>char</code> é, no fundo, um inteiro de 1 byte (0 a 255). O valor numérico armazenado é mapeado na tabela <strong>ASCII</strong> — sigla para <em>American Standard Code for Information Interchange</em> (Código Padrão Americano para o Intercâmbio de Informação) — que define qual símbolo cada número representa. Para consulta, veja a tabela ASCII completa em asciitable.com.</p>
+
+      <div class="ascii-chips" role="list" aria-label="Exemplos de mapeamento ASCII">
+        <div class="ascii-chip" role="listitem"><span class="val">65</span><span class="arrow">→</span><span class="glyph">'A'</span></div>
+        <div class="ascii-chip" role="listitem"><span class="val">97</span><span class="arrow">→</span><span class="glyph">'a'</span></div>
+        <div class="ascii-chip" role="listitem"><span class="val">48</span><span class="arrow">→</span><span class="glyph">'0'</span></div>
+        <div class="ascii-chip is-null" role="listitem"><span class="val">0</span><span class="arrow">→</span><span class="glyph">'\0'</span></div>
+      </div>
+
+      <p>Esses tipos, e algumas variações deles, não são capazes de representar um conjunto de bytes como uma palavra, um nome ou uma frase — ou seja, como uma sequência de caracteres. Para isso, precisamos conhecer um novo conceito: a <strong>string</strong>.</p>
+
+      <blockquote>
+        <p><strong>String:</strong> toda a informação composta por caracteres alfanuméricos, auxiliares, visíveis e invisíveis, que possam expressar um significado ou não.</p>
+      </blockquote>
+
+      <blockquote>
+        <p>Não há o tipo <strong>string</strong> na linguagem C.</p>
+      </blockquote>
+
+      <div class="quiz-print" id="quiz-tipos">
+        <p class="quiz-print-title">Verifique seu entendimento <span>— confira as respostas no Gabarito, seção 06</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Qual tipo nativo é mais adequado para armazenar o valor <code>-23948</code>?</p>
+            <ol class="qp-options">
+              <li>float</li>
+              <li>int</li>
+              <li>char</li>
+              <li>Nenhum tipo nativo consegue</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Um <code>char</code> ocupa 1 byte e armazena valores de 0 a 255. O que esse número representa, de fato?</p>
+            <ol class="qp-options">
+              <li>Um código numérico mapeado na tabela ASCII</li>
+              <li>Um número de ponto flutuante compactado</li>
+              <li>Um endereço de memória</li>
+              <li>A quantidade de bits da variável</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Por que o tipo <code>float</code> recebe o nome "ponto flutuante"?</p>
+            <ol class="qp-options">
+              <li>Porque o valor varia entre positivo e negativo</li>
+              <li>Porque a posição do ponto decimal pode se mover dentro da representação</li>
+              <li>Porque ele ocupa uma quantidade variável de bytes</li>
+              <li>Porque é usado só para números muito grandes</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="representacao">
+      <h2>Representação de strings em C</h2>
+      <p>Apesar de não existir um tipo <code>string</code>, podemos simulá-lo combinando dois itens já conhecidos:</p>
+      <ul>
+        <li><strong>char</strong>, capaz de representar os caracteres da tabela ASCII;</li>
+        <li><strong>vetores</strong>, capazes de armazenar uma sequência de caracteres.</li>
+      </ul>
+      <p>Ou seja: para declarar uma "string" em C, declaramos um <strong>vetor de char</strong>:</p>
+
+      <pre><code>char palavrao[10];</code></pre>
+
+      <p>Toda string em C tem <strong>tamanho fixo</strong> quando declarada como vetor — não se esqueça de especificar quantos caracteres o vetor será capaz de armazenar.</p>
+
+      <h3>O caractere <code>\0</code></h3>
+      <p>Ao armazenarmos a palavra "caramba" na variável <code>palavrao</code>, o vetor assume a forma abaixo:</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 190" role="img" aria-label="Vetor palavrao com 10 posições contendo c a r a m b a, caractere nulo na posição 7, e lixo de memória nas posições 8 e 9">
+            <defs>
+              <pattern id="hatchFig1" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="2" opacity="0.25"></line>
+              </pattern>
+            </defs>
+
+            <line class="diagram-line" x1="30" y1="44" x2="416" y2="44"></line>
+            <line class="diagram-line" x1="30" y1="38" x2="30" y2="44"></line>
+            <line class="diagram-line" x1="416" y1="38" x2="416" y2="44"></line>
+            <text x="223" y="30" text-anchor="middle" class="diagram-label strong" font-size="12">7 caracteres → strlen = 7</text>
+
+            <!-- index row -->
+            <g font-size="11" class="cell-index">
+              <text x="55" y="58" text-anchor="middle">0</text>
+              <text x="111" y="58" text-anchor="middle">1</text>
+              <text x="167" y="58" text-anchor="middle">2</text>
+              <text x="223" y="58" text-anchor="middle">3</text>
+              <text x="279" y="58" text-anchor="middle">4</text>
+              <text x="335" y="58" text-anchor="middle">5</text>
+              <text x="391" y="58" text-anchor="middle">6</text>
+              <text x="447" y="58" text-anchor="middle">7</text>
+              <text x="503" y="58" text-anchor="middle">8</text>
+              <text x="559" y="58" text-anchor="middle">9</text>
+            </g>
+
+            <!-- boxes -->
+            <g>
+              <rect class="cell-box" x="30" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="86" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="142" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="198" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="254" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="310" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-box" x="366" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-null" x="422" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-empty" x="478" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-empty" x="478" y="64" width="50" height="56" rx="4" fill="url(#hatchFig1)" stroke="none"></rect>
+              <rect class="cell-empty" x="534" y="64" width="50" height="56" rx="4"></rect>
+              <rect class="cell-empty" x="534" y="64" width="50" height="56" rx="4" fill="url(#hatchFig1)" stroke="none"></rect>
+            </g>
+
+            <!-- chars -->
+            <g font-size="22" text-anchor="middle" dominant-baseline="central">
+              <text class="cell-char" x="55" y="94">c</text>
+              <text class="cell-char" x="111" y="94">a</text>
+              <text class="cell-char" x="167" y="94">r</text>
+              <text class="cell-char" x="223" y="94">a</text>
+              <text class="cell-char" x="279" y="94">m</text>
+              <text class="cell-char" x="335" y="94">b</text>
+              <text class="cell-char" x="391" y="94">a</text>
+              <text class="cell-null-text" x="447" y="94" font-size="15">\0</text>
+              <text class="cell-empty-text" x="503" y="94" opacity="0.6">?</text>
+              <text class="cell-empty-text" x="559" y="94" opacity="0.6">?</text>
+            </g>
+
+            <!-- \0 annotation -->
+            <line class="diagram-line" x1="447" y1="122" x2="447" y2="140"></line>
+            <polygon class="diagram-tri" points="447,120 443,128 451,128"></polygon>
+            <text x="447" y="152" text-anchor="middle" class="diagram-label strong" font-size="12">\0 = fim</text>
+
+            <!-- empty bracket -->
+            <line class="diagram-line" x1="478" y1="126" x2="478" y2="132"></line>
+            <line class="diagram-line" x1="478" y1="132" x2="584" y2="132"></line>
+            <line class="diagram-line" x1="584" y1="126" x2="584" y2="132"></line>
+            <text x="531" y="150" text-anchor="middle" class="diagram-label" font-size="12">indeterminado</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> O vetor <code>palavrao[10]</code> depois de receber "caramba". O <code>\0</code> marca o fim da string e não entra na contagem de <code>strlen</code>; as posições 8 e 9 continuam com lixo de memória — valores que já estavam ali antes, imprevisíveis.</figcaption>
+      </figure>
+
+      <p>O caractere nulo não é visível no terminal de saída e não compõe o tamanho da string ("caramba" tem 7 caracteres). Sua utilidade está em marcar o fim da string para as funções que a manipulam. <strong>Sem o <code>\0</code>, o que existe é apenas um vetor de caracteres — não uma string.</strong></p>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="inicializacao">
+      <h2>Inicialização de strings</h2>
+      <p>A linguagem C permite inicializar uma string já atribuindo um valor no momento da declaração:</p>
+
+      <pre><code>char palavrao[10] = "caramba";</code></pre>
+      <p>O vetor terá espaço para 10 caracteres, mas nem todos estarão ocupados — o <code>\0</code> é colocado automaticamente logo após o último caractere. Também é possível omitir o tamanho:</p>
+
+      <pre><code>char palavrao[] = "caramba";</code></pre>
+      <p>Nesse caso, o compilador reserva exatamente o espaço necessário: 1 posição para cada letra mais o <code>\0</code>.</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 250" role="img" aria-label="Comparação entre char palavrao com 10 posições, que sobra espaço, e char palavrao sem tamanho definido, que reserva exatamente 8 bytes">
+            <defs>
+              <pattern id="hatchFig2" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <line x1="0" y1="0" x2="0" y2="6" stroke="currentColor" stroke-width="2" opacity="0.25"></line>
+              </pattern>
+            </defs>
+
+            <text x="30" y="16" class="code-label" font-size="13">char palavrao[10] = "caramba";</text>
+            <g>
+              <rect class="cell-box" x="30" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="86" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="142" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="198" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="254" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="310" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="366" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-null" x="422" y="24" width="50" height="50" rx="4"></rect>
+              <rect class="cell-empty" x="478" y="24" width="50" height="50" rx="4"></rect>
+              <rect x="478" y="24" width="50" height="50" rx="4" fill="url(#hatchFig2)" stroke="none"></rect>
+              <rect class="cell-empty" x="534" y="24" width="50" height="50" rx="4"></rect>
+              <rect x="534" y="24" width="50" height="50" rx="4" fill="url(#hatchFig2)" stroke="none"></rect>
+            </g>
+            <g font-size="20" text-anchor="middle" dominant-baseline="central">
+              <text class="cell-char" x="55" y="52">c</text>
+              <text class="cell-char" x="111" y="52">a</text>
+              <text class="cell-char" x="167" y="52">r</text>
+              <text class="cell-char" x="223" y="52">a</text>
+              <text class="cell-char" x="279" y="52">m</text>
+              <text class="cell-char" x="335" y="52">b</text>
+              <text class="cell-char" x="391" y="52">a</text>
+              <text class="cell-null-text" x="447" y="52" font-size="14">\0</text>
+              <text class="cell-empty-text" x="503" y="52" opacity="0.6">?</text>
+              <text class="cell-empty-text" x="559" y="52" opacity="0.6">?</text>
+            </g>
+            <line class="diagram-line" x1="30" y1="80" x2="30" y2="92"></line>
+            <line class="diagram-line" x1="30" y1="92" x2="584" y2="92"></line>
+            <line class="diagram-line" x1="584" y1="80" x2="584" y2="92"></line>
+            <text x="307" y="110" text-anchor="middle" class="diagram-label strong" font-size="13">10 bytes reservados</text>
+
+            <text x="30" y="146" class="code-label" font-size="13">char palavrao[] = "caramba";</text>
+            <g>
+              <rect class="cell-box" x="30" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="86" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="142" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="198" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="254" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="310" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="366" y="154" width="50" height="50" rx="4"></rect>
+              <rect class="cell-null" x="422" y="154" width="50" height="50" rx="4"></rect>
+            </g>
+            <g font-size="20" text-anchor="middle" dominant-baseline="central">
+              <text class="cell-char" x="55" y="182">c</text>
+              <text class="cell-char" x="111" y="182">a</text>
+              <text class="cell-char" x="167" y="182">r</text>
+              <text class="cell-char" x="223" y="182">a</text>
+              <text class="cell-char" x="279" y="182">m</text>
+              <text class="cell-char" x="335" y="182">b</text>
+              <text class="cell-char" x="391" y="182">a</text>
+              <text class="cell-null-text" x="447" y="182" font-size="14">\0</text>
+            </g>
+            <line class="diagram-line" x1="30" y1="210" x2="30" y2="222"></line>
+            <line class="diagram-line" x1="30" y1="222" x2="472" y2="222"></line>
+            <line class="diagram-line" x1="472" y1="210" x2="472" y2="222"></line>
+            <text x="251" y="240" text-anchor="middle" class="diagram-label strong" font-size="13">8 bytes (7 letras + \0)</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> Com tamanho fixo, sobra espaço não utilizado (linha de cima); sem tamanho definido, o vetor tem exatamente o tamanho da string inicializada — visível na diferença de comprimento entre as duas linhas.</figcaption>
+      </figure>
+
+      <div class="quiz-print" id="quiz-strings-basico">
+        <p class="quiz-print-title">Verifique seu entendimento <span>— confira as respostas no Gabarito, seção 06</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">O que é obrigatório existir ao final de um vetor de caracteres para que ele seja considerado uma string válida em C?</p>
+            <ol class="qp-options">
+              <li>Um espaço em branco</li>
+              <li>O caractere nulo <code>\0</code></li>
+              <li>O caractere de nova linha <code>\n</code></li>
+              <li>O valor 255</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual alternativa declara corretamente uma string com espaço para até 9 caracteres visíveis mais o terminador?</p>
+            <ol class="qp-options">
+              <li><code>char nome[9];</code></li>
+              <li><code>char nome[10];</code></li>
+              <li><code>string nome[10];</code></li>
+              <li><code>char nome = 10;</code></li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Ao declarar <code>char palavrao[] = "caramba";</code>, quantos bytes o compilador reserva automaticamente?</p>
+            <ol class="qp-options">
+              <li>7</li>
+              <li>8</li>
+              <li>9</li>
+              <li>10</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="io">
+      <h2>Imprimindo e lendo strings</h2>
+
+      <h3>Impressão</h3>
+      <p>Qualquer string pode ser impressa com <code>printf</code>, usando o formatador <code>%s</code>:</p>
+      <pre><code>printf("O palavrão digitado foi %s.", palavrao);</code></pre>
+
+      <h3>Leitura</h3>
+      <p>Existem funções específicas para ler strings, mas o <code>scanf</code> — já conhecido de outros tipos — é o mais eficaz. Há dois formatadores para strings:</p>
+      <ul>
+        <li><code>"%s"</code>: lê uma única palavra, parando no primeiro espaço em branco.</li>
+        <li><code>"%[^\n]"</code>: lê tudo até a tecla Enter (<code>\n</code>), incluindo espaços — necessário para frases com mais de uma palavra.</li>
+      </ul>
+
+      <pre><code>char nome[15];
+scanf("%s", nome);</code></pre>
+
+      <pre><code>char frase[50];
+scanf("%[^\n]", frase);</code></pre>
+
+      <p>Imagine que o usuário digite a frase <code>"obrigado pela visita"</code> seguida de Enter:</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 420 160" role="img" aria-label="Comparação entre %s, que para no primeiro espaço e lê apenas obrigado, e %[^\n], que lê a frase inteira até o Enter">
+            <rect class="chip-box" x="30" y="24" width="104" height="34" rx="6"></rect>
+            <text class="chip-text" x="82" y="45" text-anchor="middle" font-size="13">obrigado</text>
+
+            <rect class="chip-box" x="150" y="24" width="58" height="34" rx="6"></rect>
+            <text class="chip-text" x="179" y="45" text-anchor="middle" font-size="13">pela</text>
+
+            <rect class="chip-box" x="224" y="24" width="80" height="34" rx="6"></rect>
+            <text class="chip-text" x="264" y="45" text-anchor="middle" font-size="13">visita</text>
+
+            <rect class="chip-newline" x="320" y="24" width="40" height="34" rx="6"></rect>
+            <text class="chip-newline-text" x="340" y="45" text-anchor="middle" font-size="14">↵</text>
+
+            <line class="diagram-line" x1="30" y1="62" x2="30" y2="70"></line>
+            <line class="diagram-line" x1="30" y1="70" x2="134" y2="70"></line>
+            <line class="diagram-line" x1="134" y1="62" x2="134" y2="70"></line>
+            <text x="82" y="86" text-anchor="middle" class="diagram-label strong" font-size="12">%s → para no espaço</text>
+
+            <line class="diagram-line" x1="30" y1="96" x2="30" y2="118"></line>
+            <line class="diagram-line" x1="30" y1="118" x2="304" y2="118"></line>
+            <line class="diagram-line" x1="304" y1="96" x2="304" y2="118"></line>
+            <text x="167" y="136" text-anchor="middle" class="diagram-label strong" font-size="12">%[^\n] → lê até o Enter</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 3.</strong> <code>%s</code> enxerga apenas a primeira palavra, "obrigado", e deixa o resto no buffer de entrada. <code>%[^\n]</code> consome tudo — inclusive os espaços — parando só quando encontra o <code>\n</code> do Enter.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Nota</span>
+        <p>Existem outros métodos de leitura, como <code>gets</code> e <code>fgets</code>, mas ambos têm limitações que não estão presentes no <code>scanf</code>.</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="stringh">
+      <h2>Funções da biblioteca string.h</h2>
+      <p>Para tratar um vetor de caracteres como uma string de fato, além do <code>\0</code>, usamos a biblioteca <code>string.h</code>, que reúne diversas funções de manipulação. As principais:</p>
+
+      <h3><code>strlen</code> — comprimento</h3>
+      <p>Retorna o tamanho de uma string passada como argumento (sem contar o <code>\0</code>):</p>
+      <pre><code>char frase[100] = "O rato roeu";
+
+int l = strlen(frase);
+<span class="tok-comment">// l terá valor 11</span></code></pre>
+
+      <h3><code>strcpy</code> — cópia</h3>
+      <p>Copia o conteúdo da string do 2º argumento para dentro da string do 1º argumento:</p>
+      <pre><code>char frase[100] = "O rato roeu";
+char frase1[100];
+
+strcpy(frase1, frase);
+<span class="tok-comment">// frase1 terá o valor "O rato roeu"</span></code></pre>
+
+      <blockquote>
+        <p><strong>Atenção:</strong> por que não podemos simplesmente fazer <code>frase1 = frase;</code>, como fazemos com variáveis comuns, para atribuir strings? Pesquise — e depois confira sua resposta no Gabarito.</p>
+      </blockquote>
+
+      <h3><code>strcat</code> — concatenação</h3>
+      <p>Adiciona, ao final da string do 1º argumento, o conteúdo da string do 2º argumento:</p>
+      <pre><code>char frase[100] = "O rato roeu";
+char frase1[100] = "A roupa do rei de roma";
+
+strcat(frase, frase1);
+<span class="tok-comment">// frase terá o valor "O rato roeuA roupa do rei de roma"</span></code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 420 270" role="img" aria-label="strcat copia o conteúdo de frase1 a partir do caractere nulo de frase, sem inserir espaço entre as duas strings">
+            <text x="10" y="42" class="diagram-label" font-size="12">frase</text>
+            <rect class="chip-box" x="70" y="20" width="150" height="34" rx="6"></rect>
+            <text class="chip-text" x="145" y="41" text-anchor="middle" font-size="13">O rato roeu</text>
+            <rect class="cell-null" x="220" y="20" width="28" height="34" rx="4"></rect>
+            <text class="cell-null-text" x="234" y="41" text-anchor="middle" font-size="12">\0</text>
+
+            <text x="10" y="102" class="diagram-label" font-size="12">frase1</text>
+            <rect class="chip-box" x="70" y="80" width="260" height="34" rx="6"></rect>
+            <text class="chip-text" x="200" y="101" text-anchor="middle" font-size="12">A roupa do rei de roma</text>
+            <rect class="cell-null" x="330" y="80" width="28" height="34" rx="4"></rect>
+            <text class="cell-null-text" x="344" y="101" text-anchor="middle" font-size="12">\0</text>
+
+            <line class="diagram-line" x1="200" y1="130" x2="200" y2="164"></line>
+            <polygon class="diagram-tri" points="200,168 195,159 205,159"></polygon>
+            <text x="212" y="150" class="code-label" font-size="12">strcat(frase, frase1);</text>
+
+            <text x="10" y="212" class="diagram-label" font-size="12">frase</text>
+            <text x="10" y="226" class="diagram-label" font-size="10">(depois)</text>
+            <rect class="chip-box" x="70" y="190" width="150" height="34" rx="6"></rect>
+            <text class="chip-text" x="145" y="211" text-anchor="middle" font-size="12">O rato roeu</text>
+            <rect class="chip-box" x="220" y="190" width="150" height="34" rx="6" fill="var(--surface)"></rect>
+            <text class="chip-text" x="295" y="211" text-anchor="middle" font-size="10">A roupa do rei de roma</text>
+            <rect class="cell-null" x="370" y="190" width="28" height="34" rx="4"></rect>
+            <text class="cell-null-text" x="384" y="211" text-anchor="middle" font-size="12">\0</text>
+
+            <line class="diagram-line" x1="220" y1="190" x2="220" y2="234" stroke-dasharray="3 2"></line>
+            <text x="220" y="250" text-anchor="middle" class="diagram-label strong" font-size="12">sem espaço entre as strings!</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 4.</strong> <code>strcat</code> escreve o conteúdo do 2º argumento exatamente a partir do <code>\0</code> do 1º, empurrando o terminador para o novo fim. Nenhum espaço é inserido automaticamente — por isso o resultado junta "roeu" com "A" sem separação.</figcaption>
+      </figure>
+
+      <div class="quiz-print" id="quiz-stringh">
+        <p class="quiz-print-title">Verifique seu entendimento <span>— confira as respostas no Gabarito, seção 06</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">O que <code>strlen(frase)</code> retorna?</p>
+            <ol class="qp-options">
+              <li>O número de bytes reservados no vetor</li>
+              <li>O número de caracteres antes do <code>\0</code></li>
+              <li>O valor ASCII do primeiro caractere</li>
+              <li>Sempre o tamanho máximo declarado do vetor</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">O que <code>strcpy(frase1, frase);</code> faz exatamente?</p>
+            <ol class="qp-options">
+              <li>Troca o conteúdo de frase pelo de frase1</li>
+              <li>Copia o conteúdo de frase para dentro de frase1</li>
+              <li>Concatena frase ao final de frase1</li>
+              <li>Compara frase e frase1 caractere a caractere</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Com <code>frase = "O rato roeu"</code> e <code>frase1 = "A roupa do rei de roma"</code>, qual o valor de <code>frase</code> após <code>strcat(frase, frase1);</code>?</p>
+            <ol class="qp-options">
+              <li>"O rato roeu A roupa do rei de roma" (com espaço)</li>
+              <li>"O rato roeuA roupa do rei de roma" (sem espaço)</li>
+              <li>"A roupa do rei de romaO rato roeu"</li>
+              <li>Erro de compilação</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Por que não é possível fazer <code>frase1 = frase;</code> para "copiar" uma string, como fazemos com <code>int a = b;</code>?</p>
+            <ol class="qp-options">
+              <li>Porque char ocupa menos memória que int</li>
+              <li>Porque um vetor não pode receber um novo endereço por atribuição — frase "é" o endereço do seu primeiro byte, que é fixo</li>
+              <li>Porque strings em C não podem ser copiadas de forma alguma</li>
+              <li>Porque isso apagaria o conteúdo de frase</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada seção, com a justificativa de cada alternativa correta.</p>
+
+      <div class="gabarito-group">
+        <h3>Seção 01 — Tipos nativos e o problema da string</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) int</span><span class="gab-explain">— -23948 é um número inteiro, sem parte fracionária: por isso <code>int</code> é o mais adequado. <code>float</code> só seria necessário se houvesse casas decimais.</span></li>
+          <li><span class="gab-answer">2. a) Um código numérico mapeado na tabela ASCII</span><span class="gab-explain">— o <code>char</code> é, no fundo, um inteiro de 1 byte; a "letra" que enxergamos é apenas a interpretação desse número segundo a tabela ASCII.</span></li>
+          <li><span class="gab-answer">3. b) Porque a posição do ponto decimal pode se mover dentro da representação</span><span class="gab-explain">— o nome vem da capacidade de "flutuar" o ponto decimal dentro dos bits do número, permitindo representar valores muito pequenos e muito grandes com o mesmo tamanho fixo.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Seção 03 — Inicialização de strings</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) O caractere nulo \0</span><span class="gab-explain">— sem o <code>\0</code>, o que existe é apenas um vetor de caracteres comum; é justamente esse caractere que marca onde a string termina.</span></li>
+          <li><span class="gab-answer">2. b) char nome[10];</span><span class="gab-explain">— string em C é vetor de char. <code>char nome[10];</code> reserva 10 bytes: até 9 caracteres visíveis mais 1 para o <code>\0</code>. Com <code>char nome[9];</code> sobraria espaço para só 8 caracteres visíveis.</span></li>
+          <li><span class="gab-answer">3. b) 8</span><span class="gab-explain">— "caramba" tem 7 letras; sem tamanho fixo, o compilador reserva exatamente 7 + 1 (do <code>\0</code>) = 8 bytes.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Seção 05 — Funções da biblioteca string.h</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) O número de caracteres antes do \0</span><span class="gab-explain">— <code>strlen</code> conta apenas os caracteres antes do <code>\0</code>. Por isso <code>char frase[100] = "O rato roeu";</code> tem <code>strlen</code> igual a 11, mesmo o vetor tendo espaço para 100.</span></li>
+          <li><span class="gab-answer">2. b) Copia o conteúdo de frase para dentro de frase1</span><span class="gab-explain">— <code>strcpy</code> copia o conteúdo do 2º argumento (origem) para o 1º argumento (destino), incluindo o <code>\0</code>.</span></li>
+          <li><span class="gab-answer">3. b) "O rato roeuA roupa do rei de roma" (sem espaço)</span><span class="gab-explain">— <code>strcat</code> concatena os bytes exatamente a partir do <code>\0</code> da primeira string, sem inserir espaços automaticamente. Se quiser um espaço, é preciso adicioná-lo manualmente antes de concatenar.</span></li>
+          <li><span class="gab-answer">4. b) Porque um vetor não pode receber um novo endereço por atribuição</span><span class="gab-explain">— <code>frase</code> "é" o endereço do seu primeiro byte, que é fixo. Um vetor decai para o endereço do seu primeiro elemento, e esse endereço não pode ser reatribuído. Por isso usamos <code>strcpy</code>, que copia o conteúdo byte a byte, em vez de copiar o endereço.</span></li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade II — Strings · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>

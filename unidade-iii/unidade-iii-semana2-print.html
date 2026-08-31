@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Passagem por Referência em C — Semana 2 (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .call-strip span.fn {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.7rem 0 0.15rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards used as exercise cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+
+  /* ---------- Trace table (step-by-step simulation) ---------- */
+
+  .trace-wrap {
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    break-inside: avoid;
+  }
+  .trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--surface);
+  }
+  .trace-table th, .trace-table td {
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .trace-table thead th {
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .trace-table td.trace-desc {
+    white-space: normal;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    min-width: 190px;
+  }
+  .trace-table tr:last-child td { border-bottom: none; }
+  .trace-step { color: var(--accent-2); font-weight: 700; }
+  .trace-changed { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  .trace-gone { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+
+  @media (max-width: 560px) {
+    .type-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade III · Semana 2 · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Passagem por Referência em C<br><span class="dim">ponteiros, vetores, matrizes e strings em funções</span></h1>
+    <p class="subtitle">Uma função com <code>return</code> só devolve um resultado por vez. Mas e quando um problema — como encontrar as duas raízes de uma equação do 2º grau — exige dois resultados ao mesmo tempo? Este roteiro usa ponteiros para escrever diretamente nas variáveis de quem chamou a função, e mostra por que vetores, matrizes e strings já se comportam assim por padrão em C.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">main()</span>
+      <span class="arrow">→</span>
+      <span class="fn">calcularRaizes(&amp;x1, &amp;x2)</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li class="toc-group" role="presentation">Aula 5 — Passagem por referência</li>
+      <li><a href="#motivacao"><span class="num">01</span> O problema dos dois retornos</a></li>
+      <li><a href="#enderecos"><span class="num">02</span> Ponteiros: endereços, <code>&amp;</code> e <code>*</code></a></li>
+      <li><a href="#assinatura"><span class="num">03</span> Ponteiros como parâmetros</a></li>
+      <li><a href="#troca"><span class="num">04</span> Por que trocar valores sem ponteiro não funciona</a></li>
+
+      <li class="toc-group" role="presentation">Aula 6 — Arrays e strings como parâmetros</li>
+      <li><a href="#decaimento"><span class="num">05</span> Arrays "decaem" para ponteiros</a></li>
+      <li><a href="#strings-parametro"><span class="num">06</span> Strings são arrays: alterando em vigor</a></li>
+      <li><a href="#matrizes"><span class="num">07</span> Matrizes como parâmetros</a></li>
+
+      <li class="toc-group" role="presentation">Aulas 7 e 8 — Prática em laboratório</li>
+      <li><a href="#simulacao"><span class="num">08</span> Simulação passo a passo: trocando dois valores</a></li>
+      <li><a href="#pratica-vetores"><span class="num">09</span> Exercícios aplicados: busca, soma/média, inverter string</a></li>
+      <li><a href="#gabarito"><span class="num">10</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="motivacao">
+      <h2>O problema dos dois retornos</h2>
+      <p>Uma equação do 2º grau, <code>ax² + bx + c = 0</code>, é resolvida pela fórmula de Bhaskara e produz <strong>duas raízes</strong>, <code>x1</code> e <code>x2</code>. Uma primeira tentativa de escrever isso como função, usando o que já conhecemos da Semana 1, esbarra logo de cara:</p>
+
+      <pre><code><span class="tok-kw">float</span> calcularRaiz(<span class="tok-kw">float</span> a, <span class="tok-kw">float</span> b, <span class="tok-kw">float</span> c) {
+    <span class="tok-kw">float</span> delta = b * b - 4 * a * c;
+    <span class="tok-kw">float</span> raizDelta = sqrt(delta);
+    <span class="tok-kw">float</span> x1 = (-b + raizDelta) / (2 * a);
+    <span class="tok-kw">float</span> x2 = (-b - raizDelta) / (2 * a); <span class="tok-comment">// calculado...</span>
+    <span class="tok-kw">return</span> x1; <span class="tok-comment">// ...mas como devolver x2 também?</span>
+}</code></pre>
+
+      <p><code>x2</code> é calculado corretamente, mas <code>return</code> só devolve <strong>um</strong> valor por chamada — assim que a função termina, o quadro dela é desempilhado (como vimos na Semana 1) e <code>x2</code> desaparece junto com ele. Não existe <code>return x1, x2;</code> em C.</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 700 220" role="img" aria-label="Comparação: com um único return só um valor sai da função e o segundo se perde; com parâmetros por referência os dois valores são escritos diretamente nas variáveis do chamador">
+            <line class="diagram-line" x1="350" y1="10" x2="350" y2="210" stroke="var(--border)" stroke-dasharray="4 3"></line>
+
+            <text x="175" y="22" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--bad)">um só return</text>
+            <rect class="chip-box" x="75" y="34" width="200" height="50" rx="8"></rect>
+            <text class="chip-text" x="175" y="64" text-anchor="middle" font-size="11">calcularRaiz(...)</text>
+
+            <line class="diagram-line" x1="175" y1="84" x2="175" y2="116"></line>
+            <polygon class="diagram-tri" points="175,120 169,108 181,108"></polygon>
+
+            <rect class="chip-box chip-active" x="125" y="126" width="100" height="42" rx="6"></rect>
+            <text class="chip-text" x="175" y="152" text-anchor="middle" font-size="12">x1 = 3.00</text>
+
+            <text x="175" y="192" text-anchor="middle" font-size="11" fill="var(--bad)">x2 perdido</text>
+            <text x="175" y="207" text-anchor="middle" font-size="10" class="diagram-label">só existe 1 saída</text>
+
+            <text x="525" y="22" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--good)">por referência</text>
+            <rect class="chip-box chip-active" x="425" y="34" width="200" height="50" rx="8"></rect>
+            <text class="chip-text" x="525" y="58" text-anchor="middle" font-size="9.5">calcularRaizes(a,b,c,</text>
+            <text class="chip-text" x="525" y="72" text-anchor="middle" font-size="9.5">x1, x2)</text>
+
+            <line class="diagram-line" x1="475" y1="84" x2="475" y2="116"></line>
+            <polygon class="diagram-tri" points="475,120 469,108 481,108"></polygon>
+            <line class="diagram-line" x1="575" y1="84" x2="575" y2="116"></line>
+            <polygon class="diagram-tri" points="575,120 569,108 581,108"></polygon>
+
+            <rect class="chip-box chip-active" x="430" y="126" width="90" height="42" rx="6"></rect>
+            <text class="chip-text" x="475" y="152" text-anchor="middle" font-size="12">x1 = 3.00</text>
+            <rect class="chip-box chip-active" x="530" y="126" width="90" height="42" rx="6"></rect>
+            <text class="chip-text" x="575" y="152" text-anchor="middle" font-size="12">x2 = 2.00</text>
+
+            <text x="525" y="192" text-anchor="middle" font-size="11" fill="var(--good)">escreve nas duas</text>
+            <text x="525" y="207" text-anchor="middle" font-size="10" class="diagram-label">durante a própria chamada</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> À esquerda, <code>calcularRaiz</code> só consegue devolver um valor — <code>x2</code> é calculado e imediatamente descartado quando a função retorna. À direita, <code>calcularRaizes</code> recebe os <strong>endereços</strong> de <code>x1</code> e <code>x2</code> como parâmetros extras e escreve os dois resultados diretamente nessas posições de memória, sem depender de <code>return</code> para isso — essa é a <strong>passagem por referência</strong>.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Olhando para trás</span>
+        <p>Na Semana 1 prometemos: "veremos como alterar diretamente a variável do chamador usando ponteiros — útil quando uma função precisa modificar mais de um valor ao mesmo tempo". É exatamente isso que este roteiro resolve, começando pelo próprio conceito de ponteiro.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="enderecos">
+      <h2>Ponteiros: endereços, <code>&amp;</code> e <code>*</code></h2>
+      <p>Toda variável em C mora em algum endereço de memória. Normalmente não precisamos pensar nisso — mas um <strong>ponteiro</strong> é justamente uma variável cujo valor <em>é</em> um endereço, e não um número comum. Ele "aponta para" outra variável.</p>
+
+      <ul>
+        <li><code>&amp;x</code> — operador <strong>endereço-de</strong>: devolve o endereço de memória onde <code>x</code> está guardada.</li>
+        <li><code>float *p;</code> — declara <code>p</code> como um <strong>ponteiro para float</strong>: ele vai guardar o endereço de uma variável do tipo <code>float</code>, não um <code>float</code> diretamente.</li>
+        <li><code>*p</code> — operador de <strong>indireção</strong> (ou dereferência): acessa o valor que está no endereço guardado por <code>p</code>. Pode ser lido (<code>y = *p;</code>) ou escrito (<code>*p = 10;</code>).</li>
+      </ul>
+
+      <pre><code><span class="tok-kw">int</span> x = 5;      <span class="tok-comment">// uma variável comum</span>
+<span class="tok-kw">int</span> *p = &amp;x;   <span class="tok-comment">// p guarda o endereço de x</span>
+*p = 10;        <span class="tok-comment">// escreve 10 no endereço que p guarda — ou seja, em x</span></code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 660 260" role="img" aria-label="Três instantâneos: t1 apenas x existe com valor 5; t2 o ponteiro p é criado apontando para x; t3 a atribuição via *p altera o valor de x para 10, sem alterar p">
+            <!-- panel 1: t1 -->
+            <g>
+              <text x="100" y="18" text-anchor="middle" class="diagram-label strong" font-size="10">t1 — int x = 5;</text>
+              <rect class="chip-box" x="30" y="30" width="140" height="66" rx="8"></rect>
+              <text class="diagram-label" x="40" y="46" font-size="9">x</text>
+              <text class="chip-text" x="100" y="76" text-anchor="middle" font-size="20">5</text>
+              <text x="100" y="150" text-anchor="middle" class="diagram-label" font-size="9">p ainda não existe</text>
+            </g>
+
+            <!-- panel 2: t2 -->
+            <g>
+              <text x="320" y="18" text-anchor="middle" class="diagram-label strong" font-size="10">t2 — int *p = &amp;x;</text>
+              <rect class="chip-box" x="250" y="30" width="140" height="66" rx="8"></rect>
+              <text class="diagram-label" x="260" y="46" font-size="9">x</text>
+              <text class="chip-text" x="320" y="76" text-anchor="middle" font-size="20">5</text>
+
+              <rect class="chip-box chip-active chip-dashed" x="250" y="164" width="140" height="54" rx="8"></rect>
+              <text class="diagram-label" x="260" y="180" font-size="9">p</text>
+              <text class="chip-text" x="320" y="203" text-anchor="middle" font-size="11" fill="var(--accent-2)">endereço de x</text>
+
+              <line x1="320" y1="164" x2="320" y2="100" stroke="var(--accent-2)" stroke-width="2"></line>
+              <polygon points="320,96 314,108 326,108" fill="var(--accent-2)"></polygon>
+              <text x="320" y="140" text-anchor="middle" font-size="9" fill="var(--accent-2)">aponta para</text>
+            </g>
+
+            <!-- panel 3: t3 -->
+            <g>
+              <text x="540" y="18" text-anchor="middle" class="diagram-label strong" font-size="10">t3 — *p = 10;</text>
+              <rect class="chip-box chip-active" x="470" y="30" width="140" height="66" rx="8"></rect>
+              <text class="diagram-label" x="480" y="46" font-size="9">x</text>
+              <text class="chip-text" x="540" y="76" text-anchor="middle" font-size="20">10</text>
+
+              <rect class="chip-box chip-dashed" x="470" y="164" width="140" height="54" rx="8"></rect>
+              <text class="diagram-label" x="480" y="180" font-size="9">p</text>
+              <text class="chip-text" x="540" y="203" text-anchor="middle" font-size="11" fill="var(--accent-2)">endereço de x</text>
+
+              <line x1="540" y1="164" x2="540" y2="100" stroke="var(--accent-2)" stroke-width="2"></line>
+              <polygon points="540,96 534,108 546,108" fill="var(--accent-2)"></polygon>
+              <text x="540" y="140" text-anchor="middle" font-size="9" fill="var(--accent-2)">escreve via *p</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> Em t1, só <code>x</code> existe. Em t2, <code>p</code> é criado com <code>*</code> na declaração — isso o torna um ponteiro, e <code>&amp;x</code> guarda nele o endereço de <code>x</code> (seta laranja: "<code>p</code> aponta para <code>x</code>"). Em t3, <code>*p = 10;</code> usa o <code>*</code> de outro jeito — não para declarar, mas para <strong>escrever no endereço apontado</strong>: o valor de <code>x</code> muda, mesmo sem o código tocar em <code>x</code> diretamente. <code>p</code> em si nunca muda — ele continua guardando o mesmo endereço.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Dois usos do mesmo símbolo</span>
+        <p><code>*</code> significa coisas diferentes dependendo de onde aparece: em <code>float *p</code> (numa declaração), ele diz "<code>p</code> é um ponteiro". Em <code>*p = 10</code> (fora de declaração), ele diz "acesse o que está no endereço guardado por <code>p</code>". É comum confundir os dois no início — preste atenção ao contexto.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="assinatura">
+      <h2>Ponteiros como parâmetros</h2>
+      <p>Voltando ao problema da Seção 1: para que <code>calcularRaizes</code> escreva os dois resultados diretamente nas variáveis do chamador, seus dois últimos parâmetros precisam ser <strong>ponteiros</strong> — <code>float *x1</code> e <code>float *x2</code> — em vez de <code>float</code> comuns:</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 630 130" role="img" aria-label="Assinatura de calcularRaizes: três parâmetros comuns passados por valor (a, b, c) e dois parâmetros ponteiro passados por referência (x1, x2)">
+            <text x="20" y="42" font-family="var(--font-mono)" font-size="14">
+              <tspan x="20" fill="var(--accent-2)">void</tspan><tspan x="54" fill="var(--ink)"> </tspan><tspan x="63" fill="var(--accent)">calcularRaizes</tspan><tspan x="182" fill="var(--ink)">(</tspan><tspan x="190" fill="var(--ink-dim)">float a</tspan><tspan x="250" fill="var(--ink)">, </tspan><tspan x="268" fill="var(--ink-dim)">float b</tspan><tspan x="328" fill="var(--ink)">, </tspan><tspan x="346" fill="var(--ink-dim)">float c</tspan><tspan x="406" fill="var(--ink)">, </tspan><tspan x="424" fill="var(--accent-2-bright)" style="font-weight:700">float *x1</tspan><tspan x="500" fill="var(--ink)">, </tspan><tspan x="518" fill="var(--accent-2-bright)" style="font-weight:700">float *x2</tspan><tspan x="594" fill="var(--ink)">)</tspan>
+            </text>
+
+            <line class="diagram-line" x1="20" y1="52" x2="52" y2="52" stroke="var(--accent-2)" stroke-width="3"></line>
+            <line class="diagram-line" x1="63" y1="52" x2="181" y2="52" stroke="var(--accent)" stroke-width="3"></line>
+            <line class="diagram-line" x1="190" y1="52" x2="404" y2="52" stroke="var(--ink-dim)" stroke-width="3"></line>
+            <line class="diagram-line" x1="424" y1="52" x2="498" y2="52" stroke="var(--accent-2-bright)" stroke-width="3.5"></line>
+            <line class="diagram-line" x1="518" y1="52" x2="592" y2="52" stroke="var(--accent-2-bright)" stroke-width="3.5"></line>
+
+            <line class="diagram-line" x1="36" y1="55" x2="36" y2="76"></line>
+            <text x="36" y="90" text-anchor="middle" class="diagram-label" font-size="10">tipo de</text>
+            <text x="36" y="102" text-anchor="middle" class="diagram-label" font-size="10">retorno</text>
+
+            <line class="diagram-line" x1="122" y1="55" x2="122" y2="76"></line>
+            <text x="122" y="90" text-anchor="middle" class="diagram-label strong" font-size="10">nome da função</text>
+
+            <line class="diagram-line" x1="297" y1="55" x2="297" y2="76"></line>
+            <text x="297" y="90" text-anchor="middle" class="diagram-label" font-size="10">por valor</text>
+
+            <line class="diagram-line" x1="461" y1="55" x2="461" y2="76"></line>
+            <text x="461" y="90" text-anchor="middle" font-size="9" fill="var(--accent-2-bright)" font-weight="700">por referência</text>
+
+            <line class="diagram-line" x1="555" y1="55" x2="555" y2="76"></line>
+            <text x="555" y="90" text-anchor="middle" font-size="9" fill="var(--accent-2-bright)" font-weight="700">por referência</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 3.</strong> <code>a</code>, <code>b</code> e <code>c</code> continuam recebendo <strong>cópias</strong> — a função só lê esses valores. Já <code>x1</code> e <code>x2</code> são ponteiros: recebem os <strong>endereços</strong> de variáveis do chamador (passados com <code>&amp;</code> na chamada) e podem escrever nelas. Note que a função virou <code>void</code> — ela não precisa mais de <code>return</code>, porque já entrega os resultados através dos ponteiros.</figcaption>
+      </figure>
+
+      <p>A função completa e sua chamada:</p>
+
+      <pre><code><span class="tok-kw">void</span> calcularRaizes(<span class="tok-kw">float</span> a, <span class="tok-kw">float</span> b, <span class="tok-kw">float</span> c, <span class="tok-kw">float</span> *x1, <span class="tok-kw">float</span> *x2) {
+    <span class="tok-kw">float</span> delta = b * b - 4 * a * c;
+    <span class="tok-kw">float</span> raizDelta = sqrt(delta);
+    *x1 = (-b + raizDelta) / (2 * a);
+    *x2 = (-b - raizDelta) / (2 * a);
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> x1, x2;
+    calcularRaizes(1, -5, 6, &amp;x1, &amp;x2); <span class="tok-comment">// x² - 5x + 6 = 0</span>
+    printf(<span class="tok-str">"x1 = %.2f, x2 = %.2f\n"</span>, x1, x2); <span class="tok-comment">// x1 = 3.00, x2 = 2.00</span>
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+
+      <p>Repare que, dentro de <code>main</code>, <code>x1</code> e <code>x2</code> são <code>float</code> comuns — quem os transforma em ponteiros é a chamada, com <code>&amp;x1</code> e <code>&amp;x2</code>. Dentro de <code>calcularRaizes</code>, <code>x1</code> e <code>x2</code> já chegam como ponteiros, por isso o corpo da função usa <code>*x1</code> e <code>*x2</code> para escrever os resultados.</p>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="troca">
+      <h2>Por que trocar valores sem ponteiro não funciona</h2>
+      <p>O exemplo clássico para fixar passagem por referência é uma função que troca o conteúdo de duas variáveis. A primeira tentativa, sem ponteiros, repete o mesmo erro da passagem por valor visto na Semana 1:</p>
+
+      <pre><code><span class="tok-kw">void</span> trocar(<span class="tok-kw">int</span> a, <span class="tok-kw">int</span> b) {
+    <span class="tok-kw">int</span> temp = a;
+    a = b;
+    b = temp;
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> x = 5, y = 10;
+    trocar(x, y);
+    printf(<span class="tok-str">"x = %d, y = %d\n"</span>, x, y); <span class="tok-comment">// x = 5, y = 10 — nada mudou!</span>
+}</code></pre>
+
+      <p>A correção troca os parâmetros por ponteiros — <code>a</code> e <code>b</code> passam a guardar os <strong>endereços</strong> de <code>x</code> e <code>y</code>, em vez de cópias dos seus valores:</p>
+
+      <pre><code><span class="tok-kw">void</span> trocar(<span class="tok-kw">int</span> *a, <span class="tok-kw">int</span> *b) {
+    <span class="tok-kw">int</span> temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> x = 5, y = 10;
+    trocar(&amp;x, &amp;y);
+    printf(<span class="tok-str">"x = %d, y = %d\n"</span>, x, y); <span class="tok-comment">// x = 10, y = 5</span>
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 340" role="img" aria-label="Comparação: trocar por valor deixa x e y de main desconectados do quadro de trocar; trocar por referência cria ponteiros a e b que apontam de volta para x e y em main">
+            <text x="310" y="14" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--bad)">trocar(x, y) — por valor</text>
+
+            <rect x="40" y="26" width="220" height="94" rx="8" fill="none" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="55" y="44" class="code-label" font-size="11">main()</text>
+            <rect class="chip-box" x="55" y="52" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="65" y="66" font-size="9">x</text>
+            <text class="chip-text" x="100" y="90" text-anchor="middle" font-size="14">5</text>
+            <rect class="chip-box" x="155" y="52" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="165" y="66" font-size="9">y</text>
+            <text class="chip-text" x="200" y="90" text-anchor="middle" font-size="14">10</text>
+
+            <rect x="360" y="26" width="220" height="94" rx="8" fill="none" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="375" y="44" class="code-label" font-size="10">trocar(int a, int b)</text>
+            <rect class="chip-box" x="375" y="52" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="385" y="66" font-size="9">a</text>
+            <text class="chip-text" x="420" y="90" text-anchor="middle" font-size="14">10</text>
+            <rect class="chip-box" x="475" y="52" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="485" y="66" font-size="9">b</text>
+            <text class="chip-text" x="520" y="90" text-anchor="middle" font-size="14">5</text>
+
+            <text x="310" y="142" text-anchor="middle" font-size="11" fill="var(--bad)">sem ligação com x e y</text>
+            <text x="310" y="158" text-anchor="middle" font-size="10" class="diagram-label">a e b trocaram entre si, mas em outro endereço</text>
+
+            <text x="310" y="192" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--good)">trocar(&amp;x, &amp;y) — por referência</text>
+
+            <rect x="40" y="204" width="220" height="94" rx="8" fill="none" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="55" y="222" class="code-label" font-size="11">main()</text>
+            <rect class="chip-box chip-active" x="55" y="230" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="65" y="244" font-size="9">x</text>
+            <text class="chip-text" x="100" y="268" text-anchor="middle" font-size="14">10</text>
+            <rect class="chip-box chip-active" x="155" y="230" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="165" y="244" font-size="9">y</text>
+            <text class="chip-text" x="200" y="268" text-anchor="middle" font-size="14">5</text>
+
+            <rect x="360" y="204" width="220" height="94" rx="8" fill="none" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="375" y="222" class="code-label" font-size="10">trocar(int *a, int *b)</text>
+            <rect class="chip-box chip-dashed" x="375" y="230" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="385" y="244" font-size="9">a</text>
+            <text class="chip-text" x="420" y="266" text-anchor="middle" font-size="10" fill="var(--accent-2)">endereço x</text>
+            <rect class="chip-box chip-dashed" x="475" y="230" width="90" height="44" rx="6"></rect>
+            <text class="diagram-label" x="485" y="244" font-size="9">b</text>
+            <text class="chip-text" x="520" y="266" text-anchor="middle" font-size="10" fill="var(--accent-2)">endereço y</text>
+
+            <line x1="400" y1="230" x2="120" y2="274" stroke="var(--accent-2)" stroke-width="1.5" stroke-dasharray="4 3"></line>
+            <line x1="500" y1="230" x2="220" y2="274" stroke="var(--accent-2)" stroke-width="1.5" stroke-dasharray="4 3"></line>
+            <text x="255" y="252" text-anchor="middle" font-size="9" fill="var(--accent-2)">a → x</text>
+            <text x="365" y="252" text-anchor="middle" font-size="9" fill="var(--accent-2)">b → y</text>
+
+            <text x="310" y="320" text-anchor="middle" font-size="11" fill="var(--good)">a e b apontam para x e y</text>
+            <text x="310" y="335" text-anchor="middle" font-size="10" class="diagram-label">*a = ...; e *b = ...; escrevem em x e y de verdade</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 4.</strong> No painel de cima, <code>a</code> e <code>b</code> ocupam endereços próprios, sem nenhuma ligação com <code>x</code> e <code>y</code> de <code>main</code> — trocá-los só afeta a cópia local, exatamente como na passagem por valor da Semana 1. No painel de baixo, <code>a</code> e <code>b</code> guardam os endereços de <code>x</code> e <code>y</code> (linhas tracejadas laranjas): quando o corpo de <code>trocar</code> escreve em <code>*a</code> e <code>*b</code>, está escrevendo exatamente nesses endereços — <code>x</code> e <code>y</code>, em <code>main</code>, mudam de verdade.</figcaption>
+      </figure>
+
+      <div class="quiz-print" id="quiz-aula5">
+        <p class="quiz-print-title">Verifique seu entendimento — Aula 5 <span>— confira as respostas no Gabarito, seção 10</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Por que <code>void trocar(int a, int b)</code>, sem ponteiros, não troca <code>x</code> e <code>y</code> em <code>main</code>?</p>
+            <ol class="qp-options">
+              <li>Porque a função tem um erro de sintaxe</li>
+              <li><code>a</code> e <code>b</code> recebem cópias dos valores, em endereços diferentes de <code>x</code> e <code>y</code></li>
+              <li>Porque <code>int</code> não pode ser trocado, só <code>float</code></li>
+              <li>Porque falta um <code>return</code> no final da função</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">O que o operador <code>&amp;</code> faz quando escrito antes do nome de uma variável, como em <code>&amp;x</code>?</p>
+            <ol class="qp-options">
+              <li>Multiplica o valor de x por dois</li>
+              <li>Devolve o endereço de memória onde x está guardada</li>
+              <li>Cria uma cópia de x com outro nome</li>
+              <li>Converte x para ponteiro permanentemente</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Em <code>float *x1</code>, dentro de uma declaração de parâmetro, o que o <code>*</code> indica?</p>
+            <ol class="qp-options">
+              <li>Que x1 vai receber vários valores float ao mesmo tempo</li>
+              <li>Que x1 é um ponteiro para float — guarda um endereço, não um float comum</li>
+              <li>Que x1 é opcional na chamada da função</li>
+              <li>Que o valor de x1 será multiplicado dentro da função</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Já em <code>*a = *b;</code>, fora de uma declaração, o que cada <code>*</code> faz?</p>
+            <ol class="qp-options">
+              <li>Declara a e b como ponteiros pela segunda vez</li>
+              <li>Acessa (lê ou escreve) o valor guardado no endereço para o qual o ponteiro aponta</li>
+              <li>Compara se a e b apontam para o mesmo endereço</li>
+              <li>Multiplica os valores apontados por a e por b</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="decaimento">
+      <h2>Arrays "decaem" para ponteiros</h2>
+      <p>Ponteiros como parâmetro exigem <code>&amp;</code> na chamada porque <code>int</code>, <code>float</code> e <code>char</code> sozinhos são, por padrão, passados por valor. <strong>Vetores, matrizes e strings são diferentes: eles já são passados por referência automaticamente</strong>, sem precisar de <code>&amp;</code>.</p>
+
+      <p>Quando um vetor é passado como argumento, C não copia seus elementos — ele passa apenas o <strong>endereço da primeira posição</strong>. Isso é chamado de o vetor "decair" para ponteiro:</p>
+
+      <pre><code><span class="tok-kw">void</span> imprimirNotas(<span class="tok-kw">int</span> notas[], <span class="tok-kw">int</span> tamanho) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; tamanho; i++) {
+        printf(<span class="tok-str">"%d "</span>, notas[i]);
+    }
+}
+<span class="tok-comment">// equivalente a: void imprimirNotas(int *notas, int tamanho)</span></code></pre>
+
+      <p>Como não há cópia, uma função que <strong>altera</strong> os elementos do vetor altera o vetor original do chamador — sem precisar de <code>&amp;</code> nem de ponteiro explícito na assinatura:</p>
+
+      <pre><code><span class="tok-kw">void</span> aplicarBonus(<span class="tok-kw">int</span> notas[], <span class="tok-kw">int</span> tamanho, <span class="tok-kw">int</span> bonus) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; tamanho; i++) {
+        notas[i] = notas[i] + bonus;
+    }
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> notas[5] = {6, 7, 5, 8, 6};
+    aplicarBonus(notas, 5, 1); <span class="tok-comment">// sem &amp; — vetores já vão por referência</span>
+    <span class="tok-comment">// notas agora é {7, 8, 6, 9, 7} no próprio main</span>
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 400 260" role="img" aria-label="Vetor notas com 5 posições antes e depois de aplicarBonus: os mesmos endereços de memória são reaproveitados, os valores são atualizados no lugar">
+            <text x="175" y="16" text-anchor="middle" class="diagram-label strong" font-size="12">antes</text>
+            <g font-size="10" class="cell-index">
+              <text x="55" y="34" text-anchor="middle">0</text>
+              <text x="115" y="34" text-anchor="middle">1</text>
+              <text x="175" y="34" text-anchor="middle">2</text>
+              <text x="235" y="34" text-anchor="middle">3</text>
+              <text x="295" y="34" text-anchor="middle">4</text>
+            </g>
+            <g>
+              <rect class="cell-box" x="30" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="90" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="150" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="210" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="270" y="40" width="50" height="50" rx="4"></rect>
+            </g>
+            <g font-size="18" text-anchor="middle" dominant-baseline="central" class="cell-char">
+              <text x="55" y="67">6</text>
+              <text x="115" y="67">7</text>
+              <text x="175" y="67">5</text>
+              <text x="235" y="67">8</text>
+              <text x="295" y="67">6</text>
+            </g>
+
+            <text x="175" y="128" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--good)">depois de aplicarBonus(notas, 5, 1)</text>
+            <g>
+              <rect class="cell-box" x="30" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="90" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="150" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="210" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="270" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+            </g>
+            <g font-size="18" text-anchor="middle" dominant-baseline="central" class="cell-char">
+              <text x="55" y="177">7</text>
+              <text x="115" y="177">8</text>
+              <text x="175" y="177">6</text>
+              <text x="235" y="177">9</text>
+              <text x="295" y="177">7</text>
+            </g>
+            <text x="175" y="230" text-anchor="middle" font-size="10" class="diagram-label">mesmas 5 posições de memória — nenhuma cópia foi feita</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 5.</strong> As duas linhas de células representam o <strong>mesmo</strong> vetor <code>notas</code>, no mesmo endereço, em dois momentos. <code>aplicarBonus</code> recebeu apenas o endereço do primeiro elemento e escreveu diretamente nessas 5 posições — não existe uma "cópia do vetor" para <code>main</code> voltar a ler depois.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Pegadinha comum</span>
+        <p>Dentro da função, <code>sizeof(notas)</code> <strong>não</strong> devolve o tamanho do vetor original — devolve o tamanho de um ponteiro (geralmente 8 bytes), porque, decaído, <code>notas</code> é só um endereço. É exatamente por isso que o tamanho do vetor precisa ser passado como <strong>parâmetro extra</strong>, como em <code>aplicarBonus(notas, 5, 1)</code>: a função não tem como descobrir sozinha onde o vetor termina.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="strings-parametro">
+      <h2>Strings são arrays: alterando em vigor</h2>
+      <p>Uma string em C é um vetor de <code>char</code> terminado em <code>\0</code>. Como todo vetor, ela decai para ponteiro ao ser passada — então uma função que recebe <code>char texto[]</code> pode alterar a string original, caractere por caractere:</p>
+
+      <pre><code><span class="tok-kw">void</span> paraMaiusculas(<span class="tok-kw">char</span> texto[]) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; texto[i] != <span class="tok-str">'\0'</span>; i++) {
+        <span class="tok-kw">if</span> (texto[i] &gt;= <span class="tok-str">'a'</span> &amp;&amp; texto[i] &lt;= <span class="tok-str">'z'</span>) {
+            texto[i] = texto[i] - 32; <span class="tok-comment">// distância entre 'a' e 'A' na tabela ASCII</span>
+        }
+    }
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">char</span> nome[] = <span class="tok-str">"maria"</span>;
+    paraMaiusculas(nome); <span class="tok-comment">// sem &amp; — char[] também decai para ponteiro</span>
+    printf(<span class="tok-str">"%s\n"</span>, nome); <span class="tok-comment">// MARIA</span>
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 400 260" role="img" aria-label="Vetor de caracteres nome com 6 posições, m a r i a e o caractere nulo, antes e depois de paraMaiusculas: as letras são reescritas em maiúsculas nas mesmas posições, o terminador nulo permanece">
+            <text x="175" y="16" text-anchor="middle" class="diagram-label strong" font-size="12">antes: nome = "maria"</text>
+            <g font-size="10" class="cell-index">
+              <text x="55" y="34" text-anchor="middle">0</text>
+              <text x="115" y="34" text-anchor="middle">1</text>
+              <text x="175" y="34" text-anchor="middle">2</text>
+              <text x="235" y="34" text-anchor="middle">3</text>
+              <text x="295" y="34" text-anchor="middle">4</text>
+              <text x="355" y="34" text-anchor="middle">5</text>
+            </g>
+            <g>
+              <rect class="cell-box" x="30" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="90" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="150" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="210" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-box" x="270" y="40" width="50" height="50" rx="4"></rect>
+              <rect class="cell-null" x="330" y="40" width="50" height="50" rx="4"></rect>
+            </g>
+            <g font-size="18" text-anchor="middle" dominant-baseline="central" class="cell-char">
+              <text x="55" y="67">m</text>
+              <text x="115" y="67">a</text>
+              <text x="175" y="67">r</text>
+              <text x="235" y="67">i</text>
+              <text x="295" y="67">a</text>
+              <text x="355" y="67" class="cell-null-text" font-size="14">\0</text>
+            </g>
+
+            <text x="175" y="128" text-anchor="middle" class="diagram-label strong" font-size="12" fill="var(--good)">depois de paraMaiusculas(nome)</text>
+            <g>
+              <rect class="cell-box" x="30" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="90" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="150" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="210" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-box" x="270" y="150" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+              <rect class="cell-null" x="330" y="150" width="50" height="50" rx="4"></rect>
+            </g>
+            <g font-size="18" text-anchor="middle" dominant-baseline="central" class="cell-char">
+              <text x="55" y="177">M</text>
+              <text x="115" y="177">A</text>
+              <text x="175" y="177">R</text>
+              <text x="235" y="177">I</text>
+              <text x="295" y="177">A</text>
+              <text x="355" y="177" class="cell-null-text" font-size="14">\0</text>
+            </g>
+            <text x="175" y="230" text-anchor="middle" font-size="10" class="diagram-label">letras reescritas nas mesmas posições — o \0 nem precisou mudar de lugar</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 6.</strong> As cinco letras são sobrescritas nas próprias posições que já ocupavam; o terminador <code>\0</code> continua marcando o fim da string, agora na posição 5. Nenhuma célula nova foi criada — <code>paraMaiusculas</code> trabalhou no mesmo vetor que existe em <code>main</code>.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="matrizes">
+      <h2>Matrizes como parâmetros</h2>
+      <p>Uma matriz é um vetor de vetores, e também decai para ponteiro ao ser passada como parâmetro. A única exigência extra é que o compilador precisa saber o <strong>número de colunas</strong> para calcular o endereço de cada <code>matriz[i][j]</code> — por isso ele é fixado na assinatura:</p>
+
+      <pre><code><span class="tok-kw">void</span> somarLinha(<span class="tok-kw">int</span> matriz[][3], <span class="tok-kw">int</span> linha, <span class="tok-kw">int</span> *soma) {
+    *soma = 0;
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> j = 0; j &lt; 3; j++) {
+        *soma += matriz[linha][j];
+    }
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> notas[2][3] = { {7, 8, 6}, {9, 5, 10} };
+    <span class="tok-kw">int</span> total;
+    somarLinha(notas, 0, &amp;total); <span class="tok-comment">// notas sem &amp; (decai), total com &amp; (é int comum)</span>
+    printf(<span class="tok-str">"Soma da linha 0: %d\n"</span>, total); <span class="tok-comment">// 21</span>
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 440 170" role="img" aria-label="Matriz notas 2 por 3: a linha 0, com valores 7, 8 e 6, é destacada e somada pela função somarLinha, que escreve o total 21 através do ponteiro soma">
+            <g font-size="10" class="cell-index">
+              <text x="90" y="34" text-anchor="middle">col 0</text>
+              <text x="146" y="34" text-anchor="middle">col 1</text>
+              <text x="202" y="34" text-anchor="middle">col 2</text>
+            </g>
+            <text x="40" y="80" class="diagram-label" font-size="10">linha 0</text>
+            <text x="40" y="136" class="diagram-label" font-size="10">linha 1</text>
+
+            <rect class="cell-box" x="90" y="50" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+            <rect class="cell-box" x="146" y="50" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+            <rect class="cell-box" x="202" y="50" width="50" height="50" rx="4" stroke="var(--accent-2)" stroke-width="2.25"></rect>
+            <rect class="cell-box" x="90" y="106" width="50" height="50" rx="4"></rect>
+            <rect class="cell-box" x="146" y="106" width="50" height="50" rx="4"></rect>
+            <rect class="cell-box" x="202" y="106" width="50" height="50" rx="4"></rect>
+
+            <g font-size="18" text-anchor="middle" dominant-baseline="central" class="cell-char">
+              <text x="115" y="77">7</text>
+              <text x="171" y="77">8</text>
+              <text x="227" y="77">6</text>
+              <text x="115" y="133">9</text>
+              <text x="171" y="133">5</text>
+              <text x="227" y="133">10</text>
+            </g>
+
+            <line x1="252" y1="75" x2="308" y2="75" stroke="var(--accent-2)" stroke-width="2"></line>
+            <polygon points="312,75 302,70 302,80" fill="var(--accent-2)"></polygon>
+
+            <rect class="chip-box chip-active" x="316" y="55" width="100" height="40" rx="6"></rect>
+            <text class="chip-text" x="366" y="80" text-anchor="middle" font-size="12">total = 21</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 7.</strong> <code>somarLinha(notas, 0, &amp;total)</code> recebe a matriz por referência (sem <code>&amp;</code>, como qualquer vetor) e soma os elementos da linha 0, destacada em laranja. O resultado é escrito em <code>total</code>, no <code>main</code>, através do ponteiro <code>soma</code> — a mesma técnica da Seção 3, agora combinada com uma matriz como entrada.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Resumindo a regra</span>
+        <p>Vetores, matrizes e strings são <strong>sempre</strong> passados por referência em C — automaticamente, sem <code>&amp;</code>. Só variáveis "simples" (<code>int</code>, <code>float</code>, <code>char</code> isolados) precisam de um ponteiro explícito (<code>*</code> na assinatura, <code>&amp;</code> na chamada) quando a função precisa alterá-las.</p>
+      </div>
+
+      <div class="quiz-print" id="quiz-aula6">
+        <p class="quiz-print-title">Verifique seu entendimento — Aula 6 <span>— confira as respostas no Gabarito, seção 10</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Ao passar <code>int notas[5]</code> para uma função, o que é efetivamente copiado?</p>
+            <ol class="qp-options">
+              <li>Os 5 valores inteiros, um por um</li>
+              <li>Apenas o endereço da primeira posição do vetor</li>
+              <li>Nada — a função não recebe informação alguma sobre o vetor</li>
+              <li>O vetor inteiro mais um índice extra</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Por que é preciso passar o tamanho do vetor como parâmetro extra, como em <code>aplicarBonus(notas, 5, 1)</code>?</p>
+            <ol class="qp-options">
+              <li>Por exigência do compilador, sem relação com como o vetor é armazenado</li>
+              <li>Porque o vetor decaiu para ponteiro, e um ponteiro não sabe quantos elementos existem depois dele</li>
+              <li>Porque vetores em C sempre têm exatamente 5 posições</li>
+              <li>Só é necessário para vetores de float, não de int</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question"><code>void paraMaiusculas(char texto[])</code> consegue alterar a string original em <code>main</code> porque:</p>
+            <ol class="qp-options">
+              <li>Toda função void tem permissão especial para alterar variáveis externas</li>
+              <li><code>char texto[]</code> também decai para ponteiro — a função recebe o endereço do vetor original</li>
+              <li>O compilador copia o texto de volta para main automaticamente ao final</li>
+              <li>Strings não seguem a mesma regra de vetores comuns</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Em <code>int matriz[][3]</code>, por que o número de colunas (3) precisa ser fixo na assinatura?</p>
+            <ol class="qp-options">
+              <li>Por padrão de estilo, mas o programa funcionaria igual sem isso</li>
+              <li>O compilador precisa saber quantos elementos pular por linha para calcular o endereço de matriz[i][j]</li>
+              <li>Porque matrizes em C só podem ter 3 colunas</li>
+              <li>Para reservar espaço extra de memória, caso a matriz cresça</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="simulacao">
+      <h2>Simulação passo a passo: trocando dois valores</h2>
+      <p>Vamos acompanhar, instrução por instrução, exatamente o que acontece na memória durante esta execução:</p>
+
+      <pre><code><span class="tok-kw">#include</span> <span class="tok-str">&lt;stdio.h&gt;</span>
+
+<span class="tok-kw">void</span> trocar(<span class="tok-kw">int</span> *a, <span class="tok-kw">int</span> *b) {
+    <span class="tok-kw">int</span> temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> x = 5, y = 10;
+    printf(<span class="tok-str">"Antes:  x = %d, y = %d\n"</span>, x, y);
+    trocar(&amp;x, &amp;y);
+    printf(<span class="tok-str">"Depois: x = %d, y = %d\n"</span>, x, y);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead>
+            <tr>
+              <th>Passo</th>
+              <th>Instrução executada</th>
+              <th>x (main)</th>
+              <th>y (main)</th>
+              <th>a (trocar)</th>
+              <th>b (trocar)</th>
+              <th>temp (trocar)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="trace-step">1</td>
+              <td class="trace-desc"><code>int x = 5, y = 10;</code></td>
+              <td>5</td><td>10</td><td>—</td><td>—</td><td>—</td>
+            </tr>
+            <tr>
+              <td class="trace-step">2</td>
+              <td class="trace-desc"><code>trocar(&amp;x, &amp;y);</code> — chamada; um novo quadro é empilhado</td>
+              <td>5</td><td>10</td>
+              <td class="trace-changed">endereço x</td>
+              <td class="trace-changed">endereço y</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td class="trace-step">3</td>
+              <td class="trace-desc"><code>int temp = *a;</code> — lê o valor no endereço de a</td>
+              <td>5</td><td>10</td>
+              <td>endereço x</td><td>endereço y</td>
+              <td class="trace-changed">5</td>
+            </tr>
+            <tr>
+              <td class="trace-step">4</td>
+              <td class="trace-desc"><code>*a = *b;</code> — escreve o valor de <code>*b</code> (10) no endereço de a</td>
+              <td class="trace-changed">10</td><td>10</td>
+              <td>endereço x</td><td>endereço y</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td class="trace-step">5</td>
+              <td class="trace-desc"><code>*b = temp;</code> — escreve temp (5) no endereço de b</td>
+              <td>10</td><td class="trace-changed">5</td>
+              <td>endereço x</td><td>endereço y</td>
+              <td>5</td>
+            </tr>
+            <tr>
+              <td class="trace-step">6</td>
+              <td class="trace-desc">trocar retorna — o quadro é desempilhado</td>
+              <td>10</td><td>5</td>
+              <td class="trace-gone">(não existe mais)</td>
+              <td class="trace-gone">(não existe mais)</td>
+              <td class="trace-gone">(não existe mais)</td>
+            </tr>
+            <tr>
+              <td class="trace-step">7</td>
+              <td class="trace-desc">segundo <code>printf</code> em main → "Depois: x = 10, y = 5"</td>
+              <td>10</td><td>5</td><td>—</td><td>—</td><td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Repare no que muda em cada coluna: <code>a</code> e <code>b</code> nunca guardam um número "comum" como 5 ou 10 — eles guardam endereços, e continuam apontando para <code>x</code> e <code>y</code> do início ao fim. Já <code>x</code> e <code>y</code> só mudam nos passos 4 e 5, exatamente quando o corpo de <code>trocar</code> escreve através de <code>*a</code> e <code>*b</code> — nunca em nenhuma outra linha, e sem que <code>main</code> apareça em nenhuma dessas duas linhas de código.</p>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="pratica-vetores">
+      <h2>Exercícios aplicados: busca, soma/média, inverter string</h2>
+      <p>Os mesmos dois recursos — vetores passados por referência e ponteiros para "retornos extras" — resolvem a maioria dos exercícios clássicos de laboratório:</p>
+
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Busca em vetor</div>
+          <p>Percorre o vetor procurando um valor; devolve a posição encontrada, ou -1 se não existir.</p>
+          <p class="example">buscarValor(notas, 5, 8) → 3</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Soma e média</div>
+          <p>Soma pode ser calculada com return simples; se a função precisar devolver soma <em>e</em> média juntas, um dos dois vira parâmetro por referência.</p>
+          <p class="example">calcularMedia(notas, 5) → 6.40</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Inverter string</div>
+          <p>Troca caracteres das pontas para o centro, exatamente com a mesma lógica de <code>trocar</code> — só que dentro de um laço.</p>
+          <p class="example">inverterString("maria") → "airam"</p>
+        </div>
+      </div>
+
+      <pre><code><span class="tok-kw">int</span> buscarValor(<span class="tok-kw">int</span> vetor[], <span class="tok-kw">int</span> tamanho, <span class="tok-kw">int</span> alvo) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; tamanho; i++) {
+        <span class="tok-kw">if</span> (vetor[i] == alvo) {
+            <span class="tok-kw">return</span> i;
+        }
+    }
+    <span class="tok-kw">return</span> -1; <span class="tok-comment">// não encontrado</span>
+}
+
+<span class="tok-kw">float</span> calcularMedia(<span class="tok-kw">int</span> vetor[], <span class="tok-kw">int</span> tamanho) {
+    <span class="tok-kw">int</span> soma = 0;
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; tamanho; i++) {
+        soma += vetor[i];
+    }
+    <span class="tok-kw">return</span> (<span class="tok-kw">float</span>) soma / tamanho;
+}
+
+<span class="tok-kw">void</span> inverterString(<span class="tok-kw">char</span> texto[], <span class="tok-kw">int</span> tamanho) {
+    <span class="tok-kw">int</span> inicio = 0;
+    <span class="tok-kw">int</span> fim = tamanho - 1;
+    <span class="tok-kw">while</span> (inicio &lt; fim) {
+        <span class="tok-kw">char</span> temp = texto[inicio]; <span class="tok-comment">// mesma técnica de trocar()</span>
+        texto[inicio] = texto[fim];
+        texto[fim] = temp;
+        inicio++;
+        fim--;
+    }
+}</code></pre>
+
+      <p><code>inverterString</code> não precisa de <code>&amp;</code> nem de <code>return</code>: como <code>char texto[]</code> já é uma referência ao vetor original, cada troca de caracteres altera a string do chamador diretamente — o mesmo princípio das Seções 4 e 6, agora dentro de um laço que caminha das duas pontas para o centro.</p>
+
+      <div class="quiz-print" id="quiz-aula78">
+        <p class="quiz-print-title">Verifique seu entendimento — Aulas 7 e 8 <span>— confira as respostas no Gabarito, seção 10</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Na tabela de simulação, por que <code>a</code> e <code>b</code> nunca aparecem com um valor "comum" como 5 ou 10?</p>
+            <ol class="qp-options">
+              <li>Porque são declarados como float, não como int</li>
+              <li>Porque são ponteiros — guardam endereços de x e y, não os números em si</li>
+              <li>Porque a função trocar tem um erro de lógica</li>
+              <li>Porque main nunca inicializa x e y corretamente</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">No passo 4 da simulação (<code>*a = *b;</code>), o valor de <code>x</code> muda em <code>main</code> mesmo sem essa linha mencionar <code>main</code>. Por quê?</p>
+            <ol class="qp-options">
+              <li>Porque C sincroniza automaticamente todas as variáveis chamadas x</li>
+              <li>Porque a guarda o endereço de x, e *a = ...; escreve exatamente nesse endereço</li>
+              <li>Porque a variável x é global no programa</li>
+              <li>O valor de x só muda depois que a função retorna, não durante</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Uma função <code>float calcularMedia(int vetor[], int tamanho)</code> poderia, tecnicamente, alterar os valores originais do vetor?</p>
+            <ol class="qp-options">
+              <li>Não, porque vetor[] é sempre somente-leitura dentro da função</li>
+              <li>Sim — o vetor chega por referência, então nada impede a escrita; é só uma convenção não fazer isso numa função de "cálculo"</li>
+              <li>Só se a função for declarada como void</li>
+              <li>Não, porque tamanho bloqueia qualquer escrita no vetor</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada seção, com a justificativa de cada alternativa correta.</p>
+
+      <div class="gabarito-group">
+        <h3>Aula 5 — Passagem por referência</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) a e b recebem cópias dos valores, em endereços diferentes de x e y</span><span class="gab-explain">— é a mesma passagem por valor da Semana 1: a e b são variáveis locais à função, completamente separadas de x e y — trocá-las não alcança o chamador.</span></li>
+          <li><span class="gab-answer">2. b) Devolve o endereço de memória onde x está guardada</span><span class="gab-explain">— &amp; é o operador endereço-de: &amp;x não é um valor comum, é a posição de memória onde x mora — é isso que se passa para um parâmetro ponteiro.</span></li>
+          <li><span class="gab-answer">3. b) Que x1 é um ponteiro para float — guarda um endereço, não um float comum</span><span class="gab-explain">— na declaração, * marca o tipo como ponteiro. float *x1 lê-se "x1 é um ponteiro para float".</span></li>
+          <li><span class="gab-answer">4. b) Acessa (lê ou escreve) o valor guardado no endereço para o qual o ponteiro aponta</span><span class="gab-explain">— fora de uma declaração, * é o operador de indireção: *a lê o valor no endereço guardado por a; usado à esquerda de =, escreve nesse mesmo endereço.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Aula 6 — Arrays e strings como parâmetros</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Apenas o endereço da primeira posição do vetor</span><span class="gab-explain">— um vetor decai para ponteiro: a função recebe o endereço do elemento 0 e acessa os demais a partir dele, sem nenhuma cópia dos 5 valores.</span></li>
+          <li><span class="gab-answer">2. b) Porque o vetor decaiu para ponteiro, e um ponteiro não sabe quantos elementos existem depois dele</span><span class="gab-explain">— sem o tamanho, a função só teria um endereço de início — sizeof dentro dela mede o ponteiro, não o vetor, então não há como descobrir onde ele termina.</span></li>
+          <li><span class="gab-answer">3. b) char texto[] também decai para ponteiro — a função recebe o endereço do vetor original</span><span class="gab-explain">— uma string é um vetor de char — a mesma regra de decaimento para ponteiro se aplica, por isso alterar texto[i] dentro da função altera o vetor original.</span></li>
+          <li><span class="gab-answer">4. b) O compilador precisa saber quantos elementos pular por linha para calcular o endereço de matriz[i][j]</span><span class="gab-explain">— uma matriz é armazenada como uma sequência contínua de linhas; sem saber o tamanho de cada linha, o compilador não consegue calcular onde a linha i começa.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Aulas 7 e 8 — Prática em laboratório</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Porque são ponteiros — guardam endereços de x e y, não os números em si</span><span class="gab-explain">— a e b são int*, então o que eles guardam é sempre um endereço de memória — os valores 5 e 10 aparecem indiretamente, através de *a e *b.</span></li>
+          <li><span class="gab-answer">2. b) Porque a guarda o endereço de x, e *a = ...; escreve exatamente nesse endereço</span><span class="gab-explain">— a escrita acontece no endereço guardado por a, que é o endereço de x — por isso o efeito aparece em main imediatamente, ainda durante a chamada.</span></li>
+          <li><span class="gab-answer">3. b) Sim — o vetor chega por referência, então nada impede a escrita; é só uma convenção não fazer isso numa função de "cálculo"</span><span class="gab-explain">— tecnicamente sim: vetor[] é o mesmo vetor do chamador. Nada no C impede a escrita — evitar alterar dados de entrada numa função que só deveria calcular é uma boa prática, não uma regra da linguagem.</span></li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade III — Passagem por Referência · Semana 2 · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>

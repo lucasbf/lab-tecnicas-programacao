@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Subrotinas em C — Semana 1 (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .call-strip span.fn {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.7rem 0 0.15rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards used as exercise cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+  .bracket { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+
+  @media (max-width: 560px) {
+    .type-cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade III · Semana 1 · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Subrotinas em C<br><span class="dim">funções, parâmetros e a pilha de execução</span></h1>
+    <p class="subtitle">Um programa sem funções cresce por repetição. Este roteiro usa o cálculo de uma nota fiscal — subtotal, desconto e imposto — para mostrar como dividir a lógica em funções, o que realmente acontece quando uma função é chamada, e por que a variável do chamador não muda quando você altera o parâmetro.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">main()</span>
+      <span class="arrow">→</span>
+      <span class="fn">calcularTotalComImposto()</span>
+      <span class="arrow">→</span>
+      <span class="fn">calcularImposto()</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li class="toc-group" role="presentation">Aula 1 — Introdução a subrotinas</li>
+      <li><a href="#modularizar"><span class="num">01</span> Por que modularizar código?</a></li>
+      <li><a href="#anatomia"><span class="num">02</span> Protótipo, definição e chamada</a></li>
+      <li><a href="#retorno"><span class="num">03</span> Funções void x funções com retorno tipado</a></li>
+
+      <li class="toc-group" role="presentation">Aula 2 — Parâmetros e escopo</li>
+      <li><a href="#valor"><span class="num">04</span> Parâmetros e passagem por valor</a></li>
+      <li><a href="#escopo"><span class="num">05</span> Escopo de variáveis: locais e globais</a></li>
+      <li><a href="#pilha"><span class="num">06</span> Pilha de execução</a></li>
+
+      <li class="toc-group" role="presentation">Aulas 3 e 4 — Prática em laboratório</li>
+      <li><a href="#pratica"><span class="num">07</span> Funções aplicadas a problemas reais</a></li>
+      <li><a href="#multiplas"><span class="num">08</span> Programas com múltiplas funções e depuração</a></li>
+      <li><a href="#gabarito"><span class="num">09</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="modularizar">
+      <h2>Por que modularizar código?</h2>
+      <p>Imagine um sistema de vendas que precisa calcular, para cada produto, o valor final a pagar: parte do preço multiplicado pela quantidade, com um desconto aplicado e depois o ICMS (imposto sobre circulação de mercadorias) somado em cima do valor já descontado. Sem funções, o código fica assim para cada produto vendido:</p>
+
+      <pre><code><span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-comment">// Produto 1</span>
+    <span class="tok-kw">float</span> subtotal1 = 89.90f * 3;
+    <span class="tok-kw">float</span> desconto1 = subtotal1 * (10.0f / 100);
+    <span class="tok-kw">float</span> comDesconto1 = subtotal1 - desconto1;
+    <span class="tok-kw">float</span> imposto1 = comDesconto1 * 0.18f;
+    <span class="tok-kw">float</span> total1 = comDesconto1 + imposto1;
+    printf(<span class="tok-str">"Total 1: R$ %.2f\n"</span>, total1);
+
+    <span class="tok-comment">// Produto 2</span>
+    <span class="tok-kw">float</span> subtotal2 = 45.00f * 2;
+    <span class="tok-kw">float</span> desconto2 = subtotal2 * (5.0f / 100);
+    <span class="tok-kw">float</span> comDesconto2 = subtotal2 - desconto2;
+    <span class="tok-kw">float</span> imposto2 = comDesconto2 * 0.18f; <span class="tok-comment">// e se alguém digitar 0.19 aqui por engano?</span>
+    <span class="tok-kw">float</span> total2 = comDesconto2 + imposto2;
+    printf(<span class="tok-str">"Total 2: R$ %.2f\n"</span>, total2);
+
+    <span class="tok-comment">// Produto 3... o mesmo bloco de novo</span>
+}</code></pre>
+
+      <p>O problema não é só a repetição visual. É que a <strong>mesma regra de negócio</strong> (calcular imposto, aplicar desconto) está copiada em vários lugares. Se a alíquota de ICMS mudar, ou se alguém digitar <code>0.19</code> em vez de <code>0.18</code> em uma única cópia — como no comentário acima — o programa passa a calcular valores diferentes para produtos diferentes, sem nenhum erro de compilação avisando.</p>
+
+      <p>Uma <strong>subrotina</strong> (ou função) resolve isso: a lógica é escrita uma única vez, testada uma única vez, e reutilizada quantas vezes for preciso.</p>
+
+      <pre><code><span class="tok-kw">float</span> calcularTotalComImposto(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade, <span class="tok-kw">float</span> percentualDesconto);
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> total1 = calcularTotalComImposto(89.90f, 3, 10.0f);
+    printf(<span class="tok-str">"Total 1: R$ %.2f\n"</span>, total1);
+
+    <span class="tok-kw">float</span> total2 = calcularTotalComImposto(45.00f, 2, 5.0f);
+    printf(<span class="tok-str">"Total 2: R$ %.2f\n"</span>, total2);
+}</code></pre>
+
+      <p>A partir de agora, esse será o exemplo usado ao longo de todo o roteiro: uma calculadora de nota fiscal simplificada, com subtotal, desconto e imposto.</p>
+
+      <div class="callout">
+        <span class="callout-label">Ideia central</span>
+        <p>Modularizar não é sobre escrever menos linhas — é sobre ter <strong>um único lugar</strong> para corrigir e manter cada regra do programa.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="anatomia">
+      <h2>Protótipo, definição e chamada</h2>
+      <p>Toda função em C aparece de três formas diferentes no código-fonte, e é comum confundir uma com a outra no início. Vamos separar a assinatura da função <code>calcularTotalComImposto</code> em suas partes:</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 780 130" role="img" aria-label="Assinatura da função calcularTotalComImposto com tipo de retorno, nome e três parâmetros destacados por cores diferentes">
+            <text x="20" y="42" font-family="var(--font-mono)" font-size="14">
+              <tspan x="20" fill="var(--accent-2)">float</tspan><tspan x="63" fill="var(--ink)"> </tspan><tspan x="71" fill="var(--accent)">calcularTotalComImposto</tspan><tspan x="257" fill="var(--ink)">(</tspan><tspan x="266" fill="var(--ink-dim)">float preco</tspan><tspan x="359" fill="var(--ink)">, </tspan><tspan x="377" fill="var(--ink-dim)">int quantidade</tspan><tspan x="496" fill="var(--ink)">, </tspan><tspan x="514" fill="var(--ink-dim)">float percentualDesconto</tspan><tspan x="718" fill="var(--ink)">)</tspan>
+            </text>
+
+            <line class="diagram-line" x1="20" y1="52" x2="61" y2="52" stroke="var(--accent-2)" stroke-width="3"></line>
+            <line class="diagram-line" x1="63" y1="52" x2="256" y2="52" stroke="var(--accent)" stroke-width="3"></line>
+            <line class="diagram-line" x1="266" y1="52" x2="358" y2="52" stroke="var(--ink-dim)" stroke-width="3"></line>
+            <line class="diagram-line" x1="377" y1="52" x2="494" y2="52" stroke="var(--ink-dim)" stroke-width="3"></line>
+            <line class="diagram-line" x1="514" y1="52" x2="714" y2="52" stroke="var(--ink-dim)" stroke-width="3"></line>
+
+            <line class="diagram-line" x1="41" y1="55" x2="41" y2="76"></line>
+            <text x="41" y="90" text-anchor="middle" class="diagram-label" font-size="11">tipo de</text>
+            <text x="41" y="102" text-anchor="middle" class="diagram-label" font-size="11">retorno</text>
+
+            <line class="diagram-line" x1="160" y1="55" x2="160" y2="76"></line>
+            <text x="160" y="90" text-anchor="middle" class="diagram-label strong" font-size="11">nome da função</text>
+
+            <line class="diagram-line" x1="312" y1="55" x2="312" y2="76"></line>
+            <text x="312" y="90" text-anchor="middle" class="diagram-label" font-size="11">parâmetro 1</text>
+
+            <line class="diagram-line" x1="435" y1="55" x2="435" y2="76"></line>
+            <text x="435" y="90" text-anchor="middle" class="diagram-label" font-size="11">parâmetro 2</text>
+
+            <line class="diagram-line" x1="614" y1="55" x2="614" y2="76"></line>
+            <text x="614" y="90" text-anchor="middle" class="diagram-label" font-size="11">parâmetro 3</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> A assinatura declara o contrato da função: o que ela devolve (<code>float</code>), como ela é chamada (<code>calcularTotalComImposto</code>) e o que ela precisa receber para funcionar (três parâmetros).</figcaption>
+      </figure>
+
+      <p>Essa mesma assinatura reaparece de três formas diferentes ao longo do arquivo:</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 760 330" role="img" aria-label="Ordem no arquivo: protótipo antes do main, chamada dentro do main, definição depois do main">
+            <circle class="badge-circle" cx="46" cy="38" r="13"></circle>
+            <text x="46" y="38" text-anchor="middle" dominant-baseline="central" class="badge-text" font-size="13">1</text>
+            <rect class="chip-box" x="70" y="16" width="660" height="44" rx="6"></rect>
+            <text class="chip-text" x="86" y="43" font-size="11">float calcularTotalComImposto(float preco, int quantidade, float percentualDesconto);</text>
+            <text x="70" y="76" class="diagram-label strong" font-size="11">PROTÓTIPO — antes do main, avisa o compilador sobre o contrato da função</text>
+
+            <line class="diagram-line" x1="46" y1="68" x2="46" y2="108"></line>
+            <polygon class="diagram-tri" points="46,112 41,102 51,102"></polygon>
+
+            <circle class="badge-circle" cx="46" cy="140" r="13"></circle>
+            <text x="46" y="140" text-anchor="middle" dominant-baseline="central" class="badge-text" font-size="13">2</text>
+            <rect class="chip-box" x="70" y="112" width="660" height="70" rx="6"></rect>
+            <text class="chip-text" x="86" y="136" font-size="11">int main(void) {</text>
+            <text class="chip-text" x="102" y="156" font-size="11">float total = calcularTotalComImposto(89.90f, 3, 10.0f);</text>
+            <text class="chip-text" x="86" y="176" font-size="11">}</text>
+            <text x="70" y="198" class="diagram-label strong" font-size="11">CHAMADA — dentro do main, é aqui que a função é executada</text>
+
+            <line class="diagram-line" x1="46" y1="190" x2="46" y2="230"></line>
+            <polygon class="diagram-tri" points="46,234 41,224 51,224"></polygon>
+
+            <circle class="badge-circle" cx="46" cy="262" r="13"></circle>
+            <text x="46" y="262" text-anchor="middle" dominant-baseline="central" class="badge-text" font-size="13">3</text>
+            <rect class="chip-box" x="70" y="234" width="660" height="86" rx="6"></rect>
+            <text class="chip-text" x="86" y="258" font-size="11">float calcularTotalComImposto(float preco, int quantidade, float percentualDesconto) {</text>
+            <text class="chip-text" x="102" y="278" font-size="11">... corpo da função, com a lógica de verdade ...</text>
+            <text class="chip-text" x="102" y="296" font-size="11">return comDesconto + imposto;</text>
+            <text class="chip-text" x="86" y="312" font-size="11">}</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> <strong>Protótipo</strong>: só a assinatura, termina com <code>;</code>, geralmente escrita antes do <code>main</code>. <strong>Chamada</strong>: o nome da função seguido dos valores reais entre parênteses, no ponto do programa onde o resultado é necessário. <strong>Definição</strong>: a implementação completa, com corpo entre chaves — pode vir em qualquer lugar do arquivo (aqui, depois do <code>main</code>) porque o protótipo já apresentou a função ao compilador.</figcaption>
+      </figure>
+
+      <p>Sem o protótipo, o compilador só saberia da existência de <code>calcularTotalComImposto</code> ao chegar na sua definição — e como ela está depois do <code>main</code>, a chamada dentro do <code>main</code> seria um erro. É por isso que protótipos existem: eles deixam o contrato da função visível antes de qualquer chamada.</p>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="retorno">
+      <h2>Funções <code>void</code> x funções com retorno tipado</h2>
+      <p>Nem toda função existe para calcular um valor. Algumas existem para <strong>fazer algo</strong> — como imprimir um recibo — e não precisam devolver nada ao ponto onde foram chamadas. Para essas, usamos o tipo <code>void</code>:</p>
+
+      <pre><code><span class="tok-kw">void</span> imprimirRecibo(<span class="tok-kw">float</span> total) {
+    printf(<span class="tok-str">"Total a pagar: R$ %.2f\n"</span>, total);
+}</code></pre>
+
+      <p>Já <code>calcularTotalComImposto</code> precisa devolver o valor calculado, para que o restante do programa possa usá-lo — por isso seu tipo de retorno é <code>float</code>, e seu corpo termina com <code>return</code>:</p>
+
+      <pre><code><span class="tok-kw">float</span> calcularTotalComImposto(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade, <span class="tok-kw">float</span> percentualDesconto) {
+    <span class="tok-comment">// ...cálculo do subtotal, desconto e imposto...</span>
+    <span class="tok-kw">return</span> comDesconto + imposto;
+}</code></pre>
+
+      <p>As duas trabalham juntas na prática:</p>
+
+      <pre><code><span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> total = calcularTotalComImposto(89.90f, 3, 10.0f); <span class="tok-comment">// calcula e devolve um valor</span>
+    imprimirRecibo(total);                                    <span class="tok-comment">// só executa uma ação, não devolve nada</span>
+}</code></pre>
+
+      <blockquote>
+        <p><strong>Regra prática:</strong> se, depois de escrever a função, você sentir necessidade de usar o resultado dela em outra expressão ou variável, ela precisa de um tipo de retorno. Se ela só produz um efeito (imprimir, gravar, exibir), <code>void</code> é suficiente.</p>
+      </blockquote>
+
+      <div class="quiz-print" id="quiz-aula1">
+        <p class="quiz-print-title">Verifique seu entendimento — Aula 1 <span>— confira as respostas no Gabarito, seção 09</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Qual é o principal risco de repetir a mesma lógica de cálculo em vários blocos de código, em vez de usar uma função?</p>
+            <ol class="qp-options">
+              <li>O programa fica mais lento</li>
+              <li>Uma correção precisa ser replicada manualmente em cada cópia, e é fácil esquecer alguma</li>
+              <li>O compilador C não permite código repetido</li>
+              <li>O programa ocupa mais memória RAM em tempo de execução</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">O que é, exatamente, um protótipo de função?</p>
+            <ol class="qp-options">
+              <li>Uma versão de teste da função, usada antes da versão final</li>
+              <li>A assinatura da função (tipo de retorno, nome e parâmetros), terminada em <code>;</code>, sem o corpo</li>
+              <li>O primeiro valor que a função retorna quando é chamada</li>
+              <li>Uma cópia da função escrita dentro do main</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Por que <code>calcularTotalComImposto</code> pode ser chamada dentro do <code>main</code>, mesmo estando definida depois dele no arquivo?</p>
+            <ol class="qp-options">
+              <li>Porque em C a ordem das funções no arquivo nunca importa</li>
+              <li>Porque o protótipo, declarado antes do main, já informou ao compilador o contrato da função</li>
+              <li>Porque toda função void pode ser chamada antes de ser definida</li>
+              <li>Porque o main sempre é compilado por último</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual assinatura é mais adequada para uma função que apenas exibe um recibo na tela, sem devolver nenhum valor?</p>
+            <ol class="qp-options">
+              <li><code>float imprimirRecibo(float total);</code></li>
+              <li><code>void imprimirRecibo(float total);</code></li>
+              <li><code>int imprimirRecibo();</code></li>
+              <li><code>void imprimirRecibo();</code> (sem parâmetro)</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="valor">
+      <h2>Parâmetros e passagem por valor</h2>
+      <p>Em C, quando você passa um argumento para uma função, a função recebe uma <strong>cópia</strong> do valor — não a variável original. Isso tem uma consequência que costuma surpreender no início. Considere esta tentativa de aplicar um desconto:</p>
+
+      <pre><code><span class="tok-kw">void</span> tentarAplicarDesconto(<span class="tok-kw">float</span> preco) {
+    preco = preco - (preco * 0.10f); <span class="tok-comment">// altera só a cópia local</span>
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> precoProduto = 89.90f;
+    tentarAplicarDesconto(precoProduto);
+    printf(<span class="tok-str">"Preco: R$ %.2f\n"</span>, precoProduto); <span class="tok-comment">// imprime 89.90 — sem desconto!</span>
+}</code></pre>
+
+      <p>Mesmo depois da chamada, <code>precoProduto</code> continua valendo <code>89.90</code>. A função alterou apenas sua própria cópia, chamada também de <code>preco</code>, que existe num espaço de memória diferente do <code>precoProduto</code> de <code>main</code>.</p>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 260" role="img" aria-label="Passagem por valor: a variável precoProduto em main e o parâmetro preco na função ocupam endereços de memória diferentes; alterar o parâmetro não afeta a variável original">
+            <text x="40" y="18" class="diagram-label strong" font-size="12">t1 — no momento da chamada</text>
+            <rect class="chip-box" x="40" y="28" width="200" height="60" rx="6"></rect>
+            <text class="chip-text" x="140" y="50" text-anchor="middle" font-size="12">precoProduto (main)</text>
+            <text class="chip-text" x="140" y="72" text-anchor="middle" font-size="15">89.90</text>
+
+            <rect class="chip-box" x="380" y="28" width="200" height="60" rx="6"></rect>
+            <text class="chip-text" x="480" y="50" text-anchor="middle" font-size="12">preco (função)</text>
+            <text class="chip-text" x="480" y="72" text-anchor="middle" font-size="15">89.90</text>
+
+            <line class="diagram-line" x1="240" y1="58" x2="378" y2="58"></line>
+            <polygon class="diagram-tri" points="380,58 370,53 370,63"></polygon>
+            <text x="309" y="46" text-anchor="middle" class="diagram-label" font-size="10">cópia do valor</text>
+
+            <text x="40" y="150" class="diagram-label strong" font-size="12">t2 — depois de "preco = preco - 10%" dentro da função</text>
+            <rect class="chip-box chip-active" x="40" y="160" width="200" height="60" rx="6"></rect>
+            <text class="chip-text" x="140" y="182" text-anchor="middle" font-size="12">precoProduto (main)</text>
+            <text class="chip-text" x="140" y="204" text-anchor="middle" font-size="15">89.90</text>
+
+            <rect class="chip-box chip-dashed" x="380" y="160" width="200" height="60" rx="6"></rect>
+            <text class="chip-text" x="480" y="182" text-anchor="middle" font-size="12">preco (função)</text>
+            <text class="chip-text" x="480" y="204" text-anchor="middle" font-size="15">80.91</text>
+
+            <text x="140" y="238" text-anchor="middle" class="diagram-label strong" font-size="11">inalterada</text>
+            <text x="480" y="238" text-anchor="middle" class="diagram-label" font-size="11">alterada, mas desaparece ao retornar</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 3.</strong> No instante da chamada (t1), o valor de <code>precoProduto</code> é copiado para o parâmetro <code>preco</code> — são duas variáveis distintas, em endereços diferentes. Depois da atribuição dentro da função (t2), apenas a cópia local mudou; <code>precoProduto</code>, em <code>main</code>, permanece com <code>89.90</code>.</figcaption>
+      </figure>
+
+      <p>Para que o desconto realmente "volte" para quem chamou, a função precisa <strong>devolver</strong> o novo valor pelo <code>return</code>, e quem chamou precisa <strong>guardar</strong> esse retorno:</p>
+
+      <pre><code><span class="tok-kw">float</span> aplicarDesconto(<span class="tok-kw">float</span> preco, <span class="tok-kw">float</span> percentual) {
+    <span class="tok-kw">return</span> preco - (preco * percentual / 100);
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> precoProduto = 89.90f;
+    precoProduto = aplicarDesconto(precoProduto, 10.0f); <span class="tok-comment">// agora sim: 80.91</span>
+    printf(<span class="tok-str">"Preco: R$ %.2f\n"</span>, precoProduto);
+}</code></pre>
+
+      <div class="callout">
+        <span class="callout-label">Olhando à frente</span>
+        <p>Na Semana 2 veremos como alterar diretamente a variável do chamador usando <strong>ponteiros</strong> (passagem por referência) — útil quando uma função precisa modificar mais de um valor ao mesmo tempo. Por enquanto, o caminho é sempre: calcular e <code>return</code>.</p>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="escopo">
+      <h2>Escopo de variáveis: locais e globais</h2>
+      <p>A alíquota de ICMS usada em <code>calcularImposto</code> não muda de uma chamada para outra — é uma regra fixa do sistema inteiro. Faz sentido declará-la <strong>fora de qualquer função</strong>, como uma variável <strong>global</strong>:</p>
+
+      <pre><code><span class="tok-kw">const</span> <span class="tok-kw">float</span> ALIQUOTA_ICMS = 0.18f; <span class="tok-comment">// global: visível em todo o arquivo</span>
+
+<span class="tok-kw">float</span> calcularImposto(<span class="tok-kw">float</span> valor) {
+    <span class="tok-kw">float</span> imposto = valor * ALIQUOTA_ICMS; <span class="tok-comment">// local: só existe aqui dentro</span>
+    <span class="tok-kw">return</span> imposto;
+}
+
+<span class="tok-kw">float</span> calcularSubtotal(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade) {
+    <span class="tok-kw">float</span> subtotal = preco * quantidade; <span class="tok-comment">// local: outra variável, outro espaço</span>
+    <span class="tok-kw">return</span> subtotal;
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 300" role="img" aria-label="Diagrama de escopo: ALIQUOTA_ICMS é global e visível dentro das duas funções; as variáveis locais imposto e subtotal só existem dentro de suas próprias funções e não são visíveis entre si">
+            <rect x="20" y="20" width="580" height="260" rx="10" fill="none" stroke="var(--accent-2)" stroke-width="1.5" stroke-dasharray="5 3"></rect>
+            <text x="36" y="16" class="diagram-label strong" font-size="12">escopo global (arquivo inteiro)</text>
+
+            <rect class="chip-box" x="230" y="38" width="160" height="40" rx="6"></rect>
+            <text class="chip-text" x="310" y="63" text-anchor="middle" font-size="12">ALIQUOTA_ICMS = 0.18</text>
+
+            <rect x="50" y="110" width="230" height="150" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="65" y="132" class="code-label" font-size="12">calcularImposto()</text>
+            <rect class="chip-box" x="70" y="150" width="190" height="40" rx="6"></rect>
+            <text class="chip-text" x="165" y="175" text-anchor="middle" font-size="12">imposto (local)</text>
+            <text x="65" y="225" class="diagram-label" font-size="10">só existe durante</text>
+            <text x="65" y="240" class="diagram-label" font-size="10">essa chamada</text>
+
+            <rect x="340" y="110" width="230" height="150" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.25"></rect>
+            <text x="355" y="132" class="code-label" font-size="12">calcularSubtotal()</text>
+            <rect class="chip-box" x="360" y="150" width="190" height="40" rx="6"></rect>
+            <text class="chip-text" x="455" y="175" text-anchor="middle" font-size="12">subtotal (local)</text>
+            <text x="355" y="225" class="diagram-label" font-size="10">só existe durante</text>
+            <text x="355" y="240" class="diagram-label" font-size="10">essa chamada</text>
+
+            <line class="diagram-line" x1="280" y1="78" x2="165" y2="148" stroke-dasharray="3 2"></line>
+            <line class="diagram-line" x1="340" y1="78" x2="455" y2="148" stroke-dasharray="3 2"></line>
+            <text x="230" y="100" text-anchor="middle" class="diagram-label" font-size="10">visível</text>
+            <text x="392" y="100" text-anchor="middle" class="diagram-label" font-size="10">visível</text>
+
+            <line class="diagram-line" x1="280" y1="170" x2="360" y2="170" stroke="var(--accent-2)"></line>
+            <text x="320" y="290" text-anchor="middle" class="diagram-label" font-size="10" fill="var(--accent-2)">imposto e subtotal não se enxergam — escopos locais isolados</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 4.</strong> <code>ALIQUOTA_ICMS</code> é declarada fora de qualquer função: qualquer função do arquivo pode lê-la. Já <code>imposto</code> e <code>subtotal</code> são locais — cada uma só existe enquanto sua função está em execução, e nenhuma das duas consegue enxergar a variável local da outra.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="callout-label">Cuidado</span>
+        <p>Variáveis globais parecem convenientes, mas qualquer função pode alterá-las a qualquer momento — o que torna o comportamento do programa mais difícil de rastrear. Reserve-as para valores realmente fixos e amplamente compartilhados, como uma alíquota de imposto. Para dados que mudam durante o processamento, prefira parâmetros e retornos.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="pilha">
+      <h2>Pilha de execução</h2>
+      <p>Quando <code>main</code> chama <code>calcularTotalComImposto</code>, e esta por sua vez chama <code>calcularSubtotal</code>, <code>aplicarDesconto</code> e <code>calcularImposto</code>, o computador precisa lembrar onde cada função deve "voltar" quando terminar. Ele faz isso empilhando um <strong>quadro (frame)</strong> para cada chamada ativa — a chamada mais recente sempre fica no topo.</p>
+
+      <pre><code><span class="tok-kw">float</span> calcularTotalComImposto(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade, <span class="tok-kw">float</span> percentualDesconto) {
+    <span class="tok-kw">float</span> subtotal    = calcularSubtotal(preco, quantidade);
+    <span class="tok-kw">float</span> comDesconto = aplicarDesconto(subtotal, percentualDesconto);
+    <span class="tok-kw">float</span> imposto     = calcularImposto(comDesconto);
+    <span class="tok-kw">return</span> comDesconto + imposto;
+}</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 620 260" role="img" aria-label="Três instantâneos da pilha de execução: empilhando calcularSubtotal, depois desempilhando e empilhando o próximo, até restar só main">
+            <!-- panel 1 -->
+            <g>
+              <rect class="chip-box" x="20" y="180" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="100" y="205" text-anchor="middle" font-size="11">main()</text>
+              <rect class="chip-box" x="20" y="140" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="100" y="165" text-anchor="middle" font-size="9">calcularTotalComImposto()</text>
+              <rect class="chip-box chip-active" x="20" y="100" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="100" y="125" text-anchor="middle" font-size="11">calcularSubtotal()</text>
+              <text x="100" y="88" text-anchor="middle" class="diagram-label strong" font-size="11">① chamando calcularSubtotal</text>
+              <text x="100" y="236" text-anchor="middle" class="diagram-label" font-size="10">pilha com 3 quadros</text>
+            </g>
+
+            <!-- panel 2 -->
+            <g>
+              <rect class="chip-box" x="230" y="180" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="310" y="205" text-anchor="middle" font-size="11">main()</text>
+              <rect class="chip-box chip-active" x="230" y="140" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="310" y="165" text-anchor="middle" font-size="9">calcularTotalComImposto()</text>
+              <line class="diagram-line" x1="310" y1="130" x2="310" y2="105"></line>
+              <polygon class="diagram-tri" points="310,101 305,111 315,111"></polygon>
+              <text x="310" y="94" text-anchor="middle" class="diagram-label" font-size="10">subtotal = 269.70</text>
+              <text x="310" y="88" text-anchor="middle" class="diagram-label strong" font-size="11">② calcularSubtotal retorna</text>
+              <text x="310" y="236" text-anchor="middle" class="diagram-label" font-size="10">pilha volta a 2 quadros</text>
+            </g>
+
+            <!-- panel 3 -->
+            <g>
+              <rect class="chip-box chip-active" x="440" y="180" width="160" height="40" rx="4"></rect>
+              <text class="chip-text" x="520" y="205" text-anchor="middle" font-size="11">main()</text>
+              <line class="diagram-line" x1="520" y1="170" x2="520" y2="145"></line>
+              <polygon class="diagram-tri" points="520,141 515,151 525,151"></polygon>
+              <text x="520" y="134" text-anchor="middle" class="diagram-label" font-size="10">total = 286.42</text>
+              <text x="520" y="88" text-anchor="middle" class="diagram-label strong" font-size="11">③ depois de aplicarDesconto e</text>
+              <text x="520" y="102" text-anchor="middle" class="diagram-label strong" font-size="11">calcularImposto, retorno final</text>
+              <text x="520" y="236" text-anchor="middle" class="diagram-label" font-size="10">pilha com 1 quadro</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 5.</strong> Cada chamada empilha um novo quadro no topo da pilha, com espaço para os parâmetros e variáveis locais daquela função; cada <code>return</code> desempilha o quadro do topo e entrega o valor calculado para quem está logo abaixo. <code>calcularSubtotal</code>, <code>aplicarDesconto</code> e <code>calcularImposto</code> sobem e descem da pilha, um de cada vez, enquanto <code>calcularTotalComImposto</code> permanece no meio até coletar os três resultados.</figcaption>
+      </figure>
+
+      <p>Isso explica, por exemplo, por que a variável <code>subtotal</code> de <code>calcularSubtotal</code> deixa de existir assim que a função retorna: seu quadro foi desempilhado, e a memória que ele ocupava está livre para o próximo quadro que for empilhado.</p>
+
+      <div class="quiz-print" id="quiz-aula2">
+        <p class="quiz-print-title">Verifique seu entendimento — Aula 2 <span>— confira as respostas no Gabarito, seção 09</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">No exemplo <code>tentarAplicarDesconto(precoProduto)</code>, por que <code>precoProduto</code> continua com o valor original depois da chamada?</p>
+            <ol class="qp-options">
+              <li>Porque a função tem um erro de sintaxe</li>
+              <li>Porque o parâmetro recebe apenas uma cópia do valor; alterar a cópia não afeta o original</li>
+              <li>Porque void nunca pode alterar variáveis</li>
+              <li>Porque float não pode ser passado como parâmetro</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question"><code>const float ALIQUOTA_ICMS = 0.18f;</code>, declarada fora de qualquer função, tem escopo:</p>
+            <ol class="qp-options">
+              <li>Local, apenas dentro de main</li>
+              <li>Global, visível por todas as funções do arquivo</li>
+              <li>Restrito à primeira função que a utilizar</li>
+              <li>Válido apenas durante a primeira chamada do programa</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">A variável <code>subtotal</code>, local a <code>calcularSubtotal</code>, pode ser acessada dentro de <code>aplicarDesconto</code>?</p>
+            <ol class="qp-options">
+              <li>Sim, porque as duas são chamadas pela mesma função</li>
+              <li>Não — variáveis locais só existem dentro da função onde foram declaradas</li>
+              <li>Sim, mas só depois que calcularSubtotal retornar</li>
+              <li>Depende da ordem em que as funções aparecem no arquivo</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">O que acontece na pilha de execução no instante em que <code>calcularTotalComImposto</code> chama <code>calcularImposto</code>?</p>
+            <ol class="qp-options">
+              <li>O quadro de calcularTotalComImposto é removido da pilha</li>
+              <li>Um novo quadro é empilhado para calcularImposto, acima do quadro (pausado) de calcularTotalComImposto</li>
+              <li>Os dois quadros são fundidos em um só</li>
+              <li>Nada muda, pois calcularImposto não tem variáveis locais</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="pratica">
+      <h2>Funções aplicadas a problemas reais</h2>
+      <p>Os mesmos três elementos — protótipo, definição, chamada — e a mesma regra de passagem por valor valem para qualquer função, não só para cálculos financeiros. Alguns exemplos com aplicação direta:</p>
+
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Área de um terreno</div>
+          <p>Usada em orçamentos de construção e imobiliárias para calcular área construída ou de lote.</p>
+          <p class="example">calcularAreaRetangular(12.5, 8.0) → 100.0 m²</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Conversão de temperatura</div>
+          <p>Necessária sempre que dados de sensores ou previsões do tempo vêm em uma escala diferente da usada localmente.</p>
+          <p class="example">celsiusParaFahrenheit(28.0) → 82.4 °F</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Divisão de turno por paridade</div>
+          <p>Em um estoque, pedidos de número par podem ser conferidos pelo turno da manhã e ímpares pelo da tarde — uma forma simples de balancear carga de trabalho.</p>
+          <p class="example">turnoDeConferencia(4128) → turno da manhã</p>
+        </div>
+      </div>
+
+      <pre><code><span class="tok-kw">float</span> calcularAreaRetangular(<span class="tok-kw">float</span> base, <span class="tok-kw">float</span> altura) {
+    <span class="tok-kw">return</span> base * altura;
+}
+
+<span class="tok-kw">float</span> celsiusParaFahrenheit(<span class="tok-kw">float</span> celsius) {
+    <span class="tok-kw">return</span> celsius * 9.0f / 5.0f + 32;
+}
+
+<span class="tok-kw">int</span> turnoDeConferencia(<span class="tok-kw">int</span> numeroPedido) {
+    <span class="tok-kw">if</span> (numeroPedido % 2 == 0) {
+        <span class="tok-kw">return</span> 1; <span class="tok-comment">// turno da manhã</span>
+    }
+    <span class="tok-kw">return</span> 2;     <span class="tok-comment">// turno da tarde</span>
+}</code></pre>
+
+      <p>Repare que as três seguem exatamente a mesma estrutura discutida na Aula 1: um tipo de retorno compatível com o que a função calcula, parâmetros que representam os dados de entrada, e um <code>return</code> que devolve o resultado — nada disso muda em função do domínio do problema.</p>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="multiplas">
+      <h2>Programas com múltiplas funções e depuração</h2>
+      <p>Juntando tudo, o programa da nota fiscal fica assim, com cada responsabilidade isolada em sua própria função:</p>
+
+      <pre><code><span class="tok-kw">#include</span> <span class="tok-str">&lt;stdio.h&gt;</span>
+
+<span class="tok-kw">const</span> <span class="tok-kw">float</span> ALIQUOTA_ICMS = 0.18f;
+
+<span class="tok-kw">float</span> calcularSubtotal(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade);
+<span class="tok-kw">float</span> aplicarDesconto(<span class="tok-kw">float</span> subtotal, <span class="tok-kw">float</span> percentualDesconto);
+<span class="tok-kw">float</span> calcularImposto(<span class="tok-kw">float</span> valor);
+<span class="tok-kw">float</span> calcularTotalComImposto(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade, <span class="tok-kw">float</span> percentualDesconto);
+<span class="tok-kw">void</span> imprimirRecibo(<span class="tok-kw">float</span> total);
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">float</span> preco = 89.90f;
+    <span class="tok-kw">int</span> quantidade = 3;
+    <span class="tok-kw">float</span> percentualDesconto = 10.0f;
+
+    <span class="tok-kw">float</span> total = calcularTotalComImposto(preco, quantidade, percentualDesconto);
+    imprimirRecibo(total);
+
+    <span class="tok-kw">return</span> 0;
+}
+
+<span class="tok-kw">float</span> calcularTotalComImposto(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade, <span class="tok-kw">float</span> percentualDesconto) {
+    <span class="tok-kw">float</span> subtotal = calcularSubtotal(preco, quantidade);
+    printf(<span class="tok-str">"[DEBUG] subtotal = %.2f\n"</span>, subtotal);
+
+    <span class="tok-kw">float</span> comDesconto = aplicarDesconto(subtotal, percentualDesconto);
+    printf(<span class="tok-str">"[DEBUG] comDesconto = %.2f\n"</span>, comDesconto);
+
+    <span class="tok-kw">float</span> imposto = calcularImposto(comDesconto);
+    printf(<span class="tok-str">"[DEBUG] imposto = %.2f\n"</span>, imposto);
+
+    <span class="tok-kw">return</span> comDesconto + imposto;
+}
+
+<span class="tok-kw">float</span> calcularSubtotal(<span class="tok-kw">float</span> preco, <span class="tok-kw">int</span> quantidade) {
+    <span class="tok-kw">return</span> preco * quantidade;
+}
+
+<span class="tok-kw">float</span> aplicarDesconto(<span class="tok-kw">float</span> subtotal, <span class="tok-kw">float</span> percentualDesconto) {
+    <span class="tok-kw">float</span> desconto = subtotal * (percentualDesconto / 100);
+    <span class="tok-kw">return</span> subtotal - desconto;
+}
+
+<span class="tok-kw">float</span> calcularImposto(<span class="tok-kw">float</span> valor) {
+    <span class="tok-kw">return</span> valor * ALIQUOTA_ICMS;
+}
+
+<span class="tok-kw">void</span> imprimirRecibo(<span class="tok-kw">float</span> total) {
+    printf(<span class="tok-str">"Total a pagar: R$ %.2f\n"</span>, total);
+}</code></pre>
+
+      <h3>Lendo o rastro de <code>printf</code></h3>
+      <p>As linhas marcadas com <code>[DEBUG]</code> não fazem parte do resultado final do programa — servem só para acompanhar, em cada etapa, o valor que está sendo empilhado e desempilhado, exatamente como na Figura 5:</p>
+
+      <pre><code>[DEBUG] subtotal = 269.70
+[DEBUG] comDesconto = 242.73
+[DEBUG] imposto = 43.69
+Total a pagar: R$ 286.42</code></pre>
+
+      <p>Essa técnica — imprimir valores intermediários com <code>printf</code> — é a forma mais simples de depuração: se o total final estiver errado, o rastro mostra exatamente em qual função o valor já saiu do esperado, sem precisar adivinhar o que aconteceu dentro da pilha de chamadas.</p>
+
+      <div class="quiz-print" id="quiz-aula34">
+        <p class="quiz-print-title">Verifique seu entendimento — Aulas 3 e 4 <span>— confira as respostas no Gabarito, seção 09</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Em <code>turnoDeConferencia</code>, qual é o papel do operador <code>%</code>?</p>
+            <ol class="qp-options">
+              <li>Calcular uma porcentagem do número do pedido</li>
+              <li>Obter o resto da divisão por 2, usado para decidir se o número é par ou ímpar</li>
+              <li>Arredondar o número do pedido</li>
+              <li>Converter o número inteiro em texto</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">No programa completo da nota fiscal, por que <code>calcularTotalComImposto</code> guarda os retornos de <code>calcularSubtotal</code>, <code>aplicarDesconto</code> e <code>calcularImposto</code> em variáveis locais, em vez de só chamá-las soltas?</p>
+            <ol class="qp-options">
+              <li>Porque toda chamada de função precisa de uma variável, por sintaxe</li>
+              <li>Porque o valor de retorno se perde se não for capturado, e cada função depende do resultado da anterior</li>
+              <li>Porque void exige uma variável para funcionar</li>
+              <li>Para deixar o código mais longo e fácil de imprimir</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Se o total final imprimir um valor inesperado, qual é a forma mais direta de descobrir em qual função o erro começou?</p>
+            <ol class="qp-options">
+              <li>Reescrever o programa inteiro do zero</li>
+              <li>Adicionar printf de depuração após cada chamada, para comparar o valor obtido com o esperado em cada etapa</li>
+              <li>Remover todas as funções e calcular tudo dentro do main</li>
+              <li>Trocar todos os float por int</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada seção, com a justificativa de cada alternativa correta.</p>
+
+      <div class="gabarito-group">
+        <h3>Aula 1 — Introdução a subrotinas</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Uma correção precisa ser replicada manualmente em cada cópia, e é fácil esquecer alguma</span><span class="gab-explain">— como no exemplo do ICMS digitado errado em uma das cópias, a repetição cria múltiplos pontos de manutenção para a mesma regra, e nada impede que fiquem inconsistentes entre si.</span></li>
+          <li><span class="gab-answer">2. b) A assinatura da função (tipo de retorno, nome e parâmetros), terminada em ; sem o corpo</span><span class="gab-explain">— o protótipo apresenta o contrato da função ao compilador — o que ela recebe e o que devolve — sem ainda mostrar como ela funciona por dentro.</span></li>
+          <li><span class="gab-answer">3. b) Porque o protótipo, declarado antes do main, já informou ao compilador o contrato da função</span><span class="gab-explain">— sem o protótipo, o compilador chegaria na chamada dentro do main sem saber que essa função existe. O protótipo resolve isso adiantando a assinatura.</span></li>
+          <li><span class="gab-answer">4. b) void imprimirRecibo(float total);</span><span class="gab-explain">— a função só produz um efeito (imprimir), então void é o tipo de retorno correto — mas ela ainda precisa receber o total como parâmetro para saber o que imprimir.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Aula 2 — Parâmetros e escopo</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Porque o parâmetro recebe apenas uma cópia do valor; alterar a cópia não afeta o original</span><span class="gab-explain">— essa é a passagem por valor: preco, dentro da função, e precoProduto, em main, são duas variáveis distintas em endereços de memória diferentes.</span></li>
+          <li><span class="gab-answer">2. b) Global, visível por todas as funções do arquivo</span><span class="gab-explain">— variáveis declaradas fora de qualquer função, no corpo do arquivo, têm escopo global e podem ser lidas por qualquer função definida naquele arquivo.</span></li>
+          <li><span class="gab-answer">3. b) Não — variáveis locais só existem dentro da função onde foram declaradas</span><span class="gab-explain">— cada função tem seu próprio escopo local. Para aplicarDesconto usar o subtotal calculado, ele precisa ser passado como argumento, não pode ser lido diretamente.</span></li>
+          <li><span class="gab-answer">4. b) Um novo quadro é empilhado para calcularImposto, acima do quadro (pausado) de calcularTotalComImposto</span><span class="gab-explain">— cada chamada empilha um novo quadro no topo. calcularTotalComImposto fica pausado, aguardando o retorno de calcularImposto, cujo quadro será desempilhado assim que ela terminar.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Aulas 3 e 4 — Prática em laboratório</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Obter o resto da divisão por 2, usado para decidir se o número é par ou ímpar</span><span class="gab-explain">— numeroPedido % 2 devolve 0 quando o número é par e 1 quando é ímpar; é essa verificação que decide o turno.</span></li>
+          <li><span class="gab-answer">2. b) Porque o valor de retorno se perde se não for capturado, e cada função depende do resultado da anterior</span><span class="gab-explain">— aplicarDesconto precisa do subtotal, e calcularImposto precisa do valor já com desconto; sem guardar cada retorno em uma variável, não haveria como encadear os cálculos.</span></li>
+          <li><span class="gab-answer">3. b) Adicionar printf de depuração após cada chamada, para comparar o valor obtido com o esperado em cada etapa</span><span class="gab-explain">— rastrear os valores intermediários com printf, como em [DEBUG] subtotal = ..., permite localizar exatamente a etapa onde o cálculo diverge do esperado, sem precisar adivinhar.</span></li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade III — Subrotinas · Semana 1 · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>

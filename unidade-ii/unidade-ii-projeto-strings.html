@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Projeto — Cadastro de Alunos com Strings</title>
+<style>
+  :root {
+    --bg: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e1e6d8;
+    --border: #c7d0bb;
+    --ink: #1e2a22;
+    --ink-dim: #57634e;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #d1652b;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(30, 42, 34, 0.06), 0 6px 20px rgba(30, 42, 34, 0.05);
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10140e;
+      --surface: #171d14;
+      --surface-2: #1f2819;
+      --border: #38452e;
+      --ink: #eaeee1;
+      --ink-dim: #a7b39a;
+      --accent: #6fcf9e;
+      --accent-2: #e2884a;
+      --accent-2-bright: #eb9a5f;
+      --good: #6fcf9e;
+      --bad: #e2685a;
+      --null-fill: #e2884a;
+      --null-text: #241605;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10140e;
+    --surface: #171d14;
+    --surface-2: #1f2819;
+    --border: #38452e;
+    --ink: #eaeee1;
+    --ink-dim: #a7b39a;
+    --accent: #6fcf9e;
+    --accent-2: #e2884a;
+    --accent-2-bright: #eb9a5f;
+    --good: #6fcf9e;
+    --bad: #e2685a;
+    --null-fill: #e2884a;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent); color: var(--surface); }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- Header ---------- */
+
+  header.page-header { padding: 4rem 0 2rem; border-bottom: 1px solid var(--border); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+
+  h1.title { font-size: clamp(1.9rem, 1.4rem + 2vw, 2.7rem); letter-spacing: -0.01em; margin: 0.6rem 0 0.7rem; }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle { font-family: var(--font-serif); font-style: italic; color: var(--ink-dim); font-size: 1.1rem; max-width: 60ch; margin: 0 0 1.8rem; }
+
+  .meta-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+  .meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    box-shadow: var(--shadow);
+  }
+  .meta-item .meta-value { font-family: var(--font-mono); font-weight: 700; font-size: 1.3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .meta-item .meta-label { font-size: 0.8rem; color: var(--ink-dim); margin-top: 0.15rem; }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc { margin: 2.2rem 0 3rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+  nav.toc h2 { font-size: 0.78rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-dim); margin: 0 0 0.85rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  nav.toc a { text-decoration: none; color: var(--ink); font-family: var(--font-mono); font-size: 0.95rem; display: flex; gap: 0.75em; }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc a .num { color: var(--accent-2); }
+
+  /* ---------- Main ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 2rem; }
+  section.chapter { padding: 3rem 0; border-bottom: 1px solid var(--border); }
+  section.chapter:last-of-type { border-bottom: none; }
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: clamp(1.35rem, 1.15rem + 1vw, 1.7rem);
+    margin: 0 0 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+  section.chapter h2::before { content: counter(chapter, decimal-leading-zero); color: var(--accent-2); font-size: 0.85em; }
+
+  h3 { font-size: 1.02rem; margin: 2rem 0 0.8rem; color: var(--accent); }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 1.1rem; }
+  ul { margin: 0 0 1.1rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.4rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    line-height: 1.6;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0 0 1.3rem;
+    box-shadow: var(--shadow);
+  }
+  pre code { background: none; border: none; padding: 0; }
+
+  blockquote {
+    margin: 0 0 1.3rem;
+    padding: 0.9rem 1.3rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.1rem;
+    padding: 1rem 1.3rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-2); display: block; margin-bottom: 0.4rem; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .callout.callout-warn { border: 1px solid var(--bad); border-style: solid; background: var(--surface); box-shadow: var(--shadow); }
+  .callout.callout-warn .callout-label { color: var(--bad); }
+  .callout.callout-warn ul { margin: 0; padding-left: 1.3em; }
+  .callout.callout-warn li { margin-bottom: 0.4rem; }
+  .callout.callout-warn li:last-child { margin-bottom: 0; }
+  .callout.callout-warn li strong { color: var(--bad); }
+
+  /* tables */
+  .table-scroll { overflow-x: auto; margin: 0 0 1.3rem; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 0.92rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-dim); background: var(--surface-2); }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+
+  /* checklist */
+  ul.checklist { list-style: none; padding: 0; margin: 0 0 1.3rem; display: grid; gap: 0.55rem; }
+  ul.checklist li {
+    display: flex;
+    gap: 0.7em;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+  }
+  ul.checklist li::before {
+    content: "";
+    flex: none;
+    width: 1.05em;
+    height: 1.05em;
+    margin-top: 0.15em;
+    border: 1.5px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  /* rubric bars */
+  .rubric { display: grid; gap: 0.7rem; margin: 0 0 1.3rem; }
+  .rubric-row { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 1rem; align-items: center; }
+  .rubric-label { font-size: 0.92rem; }
+  .rubric-pct { font-family: var(--font-mono); font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .rubric-track { grid-column: 1 / -1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .rubric-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+
+  /* deliverables */
+  .deliver-list { list-style: none; padding: 0; margin: 0 0 1.3rem; display: grid; gap: 0.6rem; counter-reset: deliver; }
+  .deliver-list li { counter-increment: deliver; display: flex; gap: 0.8em; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.65rem 0.9rem; }
+  .deliver-list li::before {
+    content: counter(deliver);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--surface);
+    background: var(--accent);
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 0.85rem;
+  }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram { margin: 1.6rem 0 1.8rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.3rem 1.3rem 1rem; box-shadow: var(--shadow); }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption { font-size: 0.85rem; color: var(--ink-dim); margin-top: 0.9rem; line-height: 1.55; }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .box-sala { fill: var(--surface-2); stroke: var(--accent); stroke-width: 1.5; }
+  .box-lab { fill: var(--surface-2); stroke: var(--accent-2); stroke-width: 1.5; }
+  .box-title { font-family: var(--font-mono); font-weight: 700; fill: var(--ink); }
+  .box-tag-sala { fill: var(--accent); font-family: var(--font-mono); font-weight: 700; }
+  .box-tag-lab { fill: var(--accent-2); font-family: var(--font-mono); font-weight: 700; }
+  .box-foco { fill: var(--ink-dim); font-family: var(--font-serif); }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .bracket-sala { stroke: var(--accent); stroke-width: 1.25; fill: none; }
+  .bracket-lab { stroke: var(--accent-2); stroke-width: 1.25; fill: none; }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .idx-text { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .connector { stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 3; fill: none; }
+
+  footer { padding: 2.5rem 0 4rem; color: var(--ink-dim); font-size: 0.85rem; font-family: var(--font-mono); }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    header.page-header { padding-top: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade II · Projeto em trio</p>
+    <h1 class="title">Cadastro de Alunos<br><span class="dim">agora com nomes de verdade</span></h1>
+    <p class="subtitle">Na Aula 1 do semestre, o cadastro de alunos guardava nomes como "texto solto" e quebrava com poucos alunos. Chegou a hora de resolver isso com strings de verdade.</p>
+    <div class="meta-strip">
+      <div class="meta-item"><div class="meta-value">4 × 50min</div><div class="meta-label">aulas</div></div>
+      <div class="meta-item"><div class="meta-value">3</div><div class="meta-label">alunos por grupo</div></div>
+      <div class="meta-item"><div class="meta-value">1 + 3</div><div class="meta-label">sala + laboratório</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#contexto"><span class="num">01</span> Contexto</a></li>
+      <li><a href="#sistema"><span class="num">02</span> O sistema</a></li>
+      <li><a href="#esqueleto"><span class="num">03</span> Esqueleto de código fornecido</a></li>
+      <li><a href="#requisitos"><span class="num">04</span> Requisitos técnicos obrigatórios</a></li>
+      <li><a href="#cronograma"><span class="num">05</span> Cronograma</a></li>
+      <li><a href="#entrega"><span class="num">06</span> Entregáveis e avaliação</a></li>
+      <li><a href="#extras"><span class="num">07</span> Desafios extras e erros comuns</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="contexto">
+      <h2>Contexto</h2>
+      <p>Na primeira aula do semestre, a lousa mostrou um cadastro de alunos guardando nomes como "texto solto" num vetor de tamanho fixo — e ficou no ar a pergunta: <em>"como guardo e manipulo texto de verdade (nomes, frases)?"</em>. Chegou a hora de responder.</p>
+      <p>Este projeto retoma o mesmo protagonista — o cadastro de alunos — e pede que cada trio implemente a parte do sistema responsável por armazenar e manipular <strong>nomes como strings de verdade</strong>: com tamanho fixo, caractere nulo, busca, correção e as funções de <code>string.h</code>.</p>
+
+      <blockquote>
+        <p>A avaliação considera tanto o projeto (aula 1) quanto o código final (aulas 2-4). Não é permitido abrir o editor de código antes da aula 2.</p>
+      </blockquote>
+
+      <h3>Objetivos de aprendizagem</h3>
+      <ul>
+        <li><strong>Declaração e inicialização</strong> de strings como vetores de <code>char</code> de tamanho fixo.</li>
+        <li><strong>Processamento de strings</strong>: percorrer manualmente com laço e índice, localizar um caractere ou trecho, alterar o conteúdo de uma posição ou string inteira.</li>
+        <li><strong>Funções de <code>string.h</code></strong>: no mínimo <code>strcpy</code> e uma função de busca (<code>strstr</code> ou <code>strchr</code>). <code>strlen</code> e <code>strcat</code> aparecem nos <a href="#extras">desafios extras</a>.</li>
+      </ul>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="sistema">
+      <h2>O sistema</h2>
+      <p>O sistema mantém uma lista de até <code>MAX_ALUNOS</code> alunos usando <strong>vetores paralelos</strong> — ainda não vimos <code>struct</code> (isso é Unidade V), então nome e RA vivem em vetores separados, todos indexados pela mesma posição.</p>
+
+      <pre><code>#define MAX_ALUNOS 20
+#define TAM_NOME   50
+
+char nomes[MAX_ALUNOS][TAM_NOME];
+int  ras[MAX_ALUNOS];
+int  totalAlunos = 0;</code></pre>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 460 250" role="img" aria-label="Vetores paralelos nomes e ras: a mesma posição de índice em cada vetor representa o mesmo aluno">
+            <text x="145" y="16" text-anchor="middle" class="code-label" font-size="12">nomes[MAX_ALUNOS][TAM_NOME]</text>
+            <text x="365" y="16" text-anchor="middle" class="code-label" font-size="12">ras[MAX_ALUNOS]</text>
+
+            <g font-size="12" class="idx-text">
+              <text x="12" y="51">0</text>
+              <text x="12" y="97">1</text>
+              <text x="12" y="143">2</text>
+              <text x="12" y="189">3</text>
+            </g>
+
+            <g>
+              <rect class="chip-box" x="40" y="30" width="190" height="34" rx="6"></rect>
+              <rect class="chip-box" x="40" y="76" width="190" height="34" rx="6"></rect>
+              <rect class="chip-box" x="40" y="122" width="190" height="34" rx="6"></rect>
+              <rect class="chip-box" x="40" y="168" width="190" height="34" rx="6"></rect>
+            </g>
+            <g font-size="13" text-anchor="middle" class="chip-text">
+              <text x="135" y="51">Ana Souza</text>
+              <text x="135" y="97">Bruno Lima</text>
+              <text x="135" y="143">Carla Dias</text>
+              <text x="135" y="189">Diego Alves</text>
+            </g>
+
+            <g>
+              <rect class="cell-box" x="300" y="30" width="70" height="34" rx="4"></rect>
+              <rect class="cell-box" x="300" y="76" width="70" height="34" rx="4"></rect>
+              <rect class="cell-box" x="300" y="122" width="70" height="34" rx="4"></rect>
+              <rect class="cell-box" x="300" y="168" width="70" height="34" rx="4"></rect>
+            </g>
+            <g font-size="13" text-anchor="middle" class="cell-text" font-variant-numeric="tabular-nums">
+              <text x="335" y="51">1001</text>
+              <text x="335" y="97">1002</text>
+              <text x="335" y="143">1003</text>
+              <text x="335" y="189">1004</text>
+            </g>
+
+            <line class="connector" x1="230" y1="47" x2="300" y2="47"></line>
+            <line class="connector" x1="230" y1="93" x2="300" y2="93"></line>
+            <line class="connector" x1="230" y1="139" x2="300" y2="139"></line>
+            <line class="connector" x1="230" y1="185" x2="300" y2="185"></line>
+
+            <text x="12" y="222" class="idx-text" font-size="14">⋮</text>
+            <text x="135" y="222" text-anchor="middle" class="idx-text" font-size="14">⋮</text>
+            <text x="335" y="222" text-anchor="middle" class="idx-text" font-size="14">⋮</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura A.</strong> <code>nomes</code> e <code>ras</code> são dois vetores separados, mas o mesmo índice <code>i</code> em cada um representa o mesmo aluno — <code>nomes[2]</code> e <code>ras[2]</code> são a "Carla Dias" e o RA dela.</figcaption>
+      </figure>
+
+      <p>O programa deve exibir um menu em loop, repetindo até o usuário escolher sair:</p>
+
+      <pre><code>===== Cadastro de Alunos =====
+1. Cadastrar aluno
+2. Listar todos os alunos
+3. Buscar aluno por nome (busca parcial)
+4. Corrigir o nome de um aluno
+5. Contar ocorrências de uma letra no nome de um aluno
+6. Sair
+Escolha uma opção:</code></pre>
+
+      <h3>O que cada opção deve fazer</h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Ação</th><th>Conceito exercitado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Cadastrar aluno: ler nome (aceitando nome composto, com espaço) e RA, guardar nas próximas posições livres</td><td>declaração/inicialização, leitura com <code>%[^\n]</code></td></tr>
+            <tr><td>2</td><td>Listar todos os alunos cadastrados, um por linha, com nome e RA</td><td>percorrer o vetor</td></tr>
+            <tr><td>3</td><td>Buscar aluno digitando um pedaço do nome (ex.: "and" encontra "André" e "Andressa")</td><td>localizar — <code>strstr</code></td></tr>
+            <tr><td>4</td><td>Corrigir o nome de um aluno já cadastrado</td><td>alterar — <code>strcpy</code></td></tr>
+            <tr><td>5</td><td>Perguntar uma letra e um aluno, contar quantas vezes essa letra aparece no nome</td><td>percurso manual, <strong>sem</strong> <code>strchr</code>/<code>strstr</code></td></tr>
+            <tr><td>6</td><td>Encerrar o programa</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">Por que a opção 5 existe</span>
+        <p>Ela força o percurso manual, caractere a caractere, com <code>for</code> e índice — sem atalho pronto da biblioteca. É o exercício que mostra que o trio entende o que <code>string.h</code> faz por baixo dos panos.</p>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">O que saiu daqui</span>
+        <p>Gerar etiqueta (<code>strcat</code>) e mostrar o nome mais longo (<code>strlen</code>) viraram <a href="#extras">desafios extras</a> — quem terminar as 5 opções principais antes do fim da aula 4 parte para elas.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="esqueleto">
+      <h2>Esqueleto de código fornecido</h2>
+      <p>Ainda não vimos como criar funções próprias (isso é conteúdo de unidade futura) — por isso <strong>todo o código de cada opção vai direto dentro do <code>case</code> correspondente, no <code>main</code></strong>, e não em funções separadas. Para não gastar tempo de laboratório escrevendo o loop do menu, o trio recebe esta base pronta (com a opção 6 — Sair — já implementada) e preenche cada <code>case</code> com o código indicado pelo comentário:</p>
+
+      <pre><code>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+#define MAX_ALUNOS 20
+#define TAM_NOME   50
+
+char nomes[MAX_ALUNOS][TAM_NOME];
+int  ras[MAX_ALUNOS];
+int  totalAlunos = 0;
+
+int main() {
+    int opcao;
+
+    do {
+        printf("\n===== Cadastro de Alunos =====\n");
+        printf("1. Cadastrar aluno\n");
+        printf("2. Listar todos os alunos\n");
+        printf("3. Buscar aluno por nome (busca parcial)\n");
+        printf("4. Corrigir o nome de um aluno\n");
+        printf("5. Contar ocorrencias de uma letra no nome de um aluno\n");
+        printf("6. Sair\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &amp;opcao);
+        getchar(); // limpa o '\n' deixado pelo scanf("%d", ...) antes da proxima leitura de string
+
+        switch (opcao) {
+            case 1:
+                // TODO opção 1 - Cadastrar aluno:
+                // 1. Verificar se ainda há espaço (totalAlunos &lt; MAX_ALUNOS).
+                // 2. Ler o nome com scanf(" %[^\n]", nomes[totalAlunos]) — aceita nome composto.
+                // 3. Ler o RA com scanf("%d", &amp;ras[totalAlunos]) (lembrar do getchar() depois).
+                // 4. Incrementar totalAlunos.
+                break;
+
+            case 2:
+                // TODO opção 2 - Listar todos os alunos:
+                // Percorrer nomes[] e ras[] de 0 até totalAlunos - 1 com um for,
+                // imprimindo índice, nome e RA de cada aluno.
+                break;
+
+            case 3:
+                // TODO opção 3 - Buscar aluno por nome (busca parcial):
+                // 1. Ler um trecho de nome digitado pelo usuário (%[^\n]).
+                // 2. Percorrer nomes[] com um for e usar strstr(nomes[i], trecho)
+                //    para ver se o trecho aparece dentro do nome.
+                // 3. Imprimir todos os alunos cujo nome contém o trecho.
+                // 4. Se nenhum for encontrado, avisar "Nenhum aluno encontrado".
+                break;
+
+            case 4:
+                // TODO opção 4 - Corrigir o nome de um aluno:
+                // 1. Perguntar o índice (ou RA) do aluno a corrigir.
+                // 2. Ler o novo nome (%[^\n]).
+                // 3. Usar strcpy(nomes[i], novoNome) para substituir o nome antigo.
+                break;
+
+            case 5:
+                // TODO opção 5 - Contar ocorrências de uma letra no nome de um aluno:
+                // 1. Perguntar o índice (ou RA) do aluno e a letra a procurar.
+                // 2. Percorrer nomes[i] caractere a caractere com um for e um índice
+                //    (NÃO usar strchr/strstr aqui — o objetivo é o percurso manual).
+                // 3. Contar quantas vezes a letra aparece e imprimir o resultado.
+                break;
+
+            case 6:
+                printf("Encerrando...\n");
+                break;
+
+            default:
+                printf("Opcao invalida!\n");
+        }
+    } while (opcao != 6);
+
+    return 0;
+}</code></pre>
+
+      <blockquote>
+        <p>O <code>getchar()</code> depois do <code>scanf("%d", ...)</code> existe porque o <code>\n</code> deixado no buffer atrapalharia a próxima leitura de nome com <code>%[^\n]</code> logo em seguida.</p>
+      </blockquote>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="requisitos">
+      <h2>Requisitos técnicos obrigatórios</h2>
+      <ul class="checklist">
+        <li><code>MAX_ALUNOS</code> e <code>TAM_NOME</code> definidos como constantes (<code>#define</code>), não "números mágicos" espalhados pelo código</li>
+        <li>Nome armazenado em vetor de <code>char</code> de tamanho fixo — sem alocação dinâmica (ainda não vimos ponteiros)</li>
+        <li>Leitura de nome aceita nomes compostos (mais de uma palavra)</li>
+        <li>O <code>case</code> da opção 5 percorre a string manualmente com laço (sem usar <code>strchr</code>/<code>strstr</code>)</li>
+        <li>Uso de no mínimo 2 funções distintas de <code>string.h</code> (<code>strcpy</code> e <code>strstr</code>/<code>strchr</code>)</li>
+        <li>Busca trata o caso "nenhum aluno encontrado"</li>
+        <li>Programa não trava nem estoura vetor com uma entrada razoável</li>
+        <li>Menu roda em loop até a opção "Sair"</li>
+      </ul>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="cronograma">
+      <h2>Cronograma</h2>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 650 210" role="img" aria-label="Quatro aulas: a primeira em sala para projetar, as três seguintes em laboratório para implementar, com troca de rascunhos entre trios na transição">
+            <line class="bracket-sala" x1="20" y1="40" x2="20" y2="34"></line>
+            <line class="bracket-sala" x1="20" y1="34" x2="150" y2="34"></line>
+            <line class="bracket-sala" x1="150" y1="34" x2="150" y2="40"></line>
+            <text x="85" y="24" text-anchor="middle" class="box-tag-sala" font-size="12">PROJETAR — SALA</text>
+
+            <line class="bracket-lab" x1="180" y1="40" x2="180" y2="34"></line>
+            <line class="bracket-lab" x1="180" y1="34" x2="630" y2="34"></line>
+            <line class="bracket-lab" x1="630" y1="34" x2="630" y2="40"></line>
+            <text x="405" y="24" text-anchor="middle" class="box-tag-lab" font-size="12">IMPLEMENTAR — LABORATÓRIO</text>
+
+            <rect class="box-sala" x="20" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-lab" x="180" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-lab" x="340" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-lab" x="500" y="50" width="130" height="100" rx="8"></rect>
+
+            <g text-anchor="middle">
+              <text x="85" y="72" class="box-title" font-size="13">AULA 1</text>
+              <text x="85" y="90" class="box-tag-sala" font-size="11">Sala</text>
+              <text x="85" y="112" class="box-foco" font-size="11">Entender o</text>
+              <text x="85" y="128" class="box-foco" font-size="11">problema</text>
+
+              <text x="245" y="72" class="box-title" font-size="13">AULA 2</text>
+              <text x="245" y="90" class="box-tag-lab" font-size="11">Laboratório</text>
+              <text x="245" y="112" class="box-foco" font-size="11">Implementar</text>
+              <text x="245" y="128" class="box-foco" font-size="11">a base</text>
+
+              <text x="405" y="72" class="box-title" font-size="13">AULA 3</text>
+              <text x="405" y="90" class="box-tag-lab" font-size="11">Laboratório</text>
+              <text x="405" y="112" class="box-foco" font-size="11">Continuar</text>
+              <text x="405" y="128" class="box-foco" font-size="11">implementação</text>
+
+              <text x="565" y="72" class="box-title" font-size="13">AULA 4</text>
+              <text x="565" y="90" class="box-tag-lab" font-size="11">Laboratório</text>
+              <text x="565" y="112" class="box-foco" font-size="11">Finalizar e</text>
+              <text x="565" y="128" class="box-foco" font-size="11">testar</text>
+            </g>
+
+            <line class="diagram-line" x1="150" y1="100" x2="178" y2="100" stroke-dasharray="3 3"></line>
+            <polygon class="diagram-tri" points="180,100 173,96 173,104"></polygon>
+
+            <line class="diagram-line" x1="310" y1="100" x2="338" y2="100"></line>
+            <polygon class="diagram-tri" points="340,100 333,96 333,104"></polygon>
+
+            <line class="diagram-line" x1="470" y1="100" x2="498" y2="100"></line>
+            <polygon class="diagram-tri" points="500,100 493,96 493,104"></polygon>
+
+            <text x="165" y="172" text-anchor="middle" class="diagram-label strong" font-size="11">troca de rascunhos</text>
+            <text x="165" y="186" text-anchor="middle" class="diagram-label strong" font-size="11">entre trios</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura B.</strong> Uma aula de projeto no papel, três de implementação no laboratório. Na virada da Aula 1 para a Aula 2, cada trio troca seu rascunho com outro trio por 5 minutos — problema encontrado no papel é mais barato de corrigir do que no código.</figcaption>
+      </figure>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Aula</th><th>Local</th><th>Foco</th><th>O que produzir</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Sala</td><td>Entender o problema, esboçar a estrutura de dados e projetar a lógica das 5 operações</td><td>Estrutura dos vetores, pseudocódigo completo das opções 1 a 5, lista de casos de teste</td></tr>
+            <tr><td>2</td><td>Laboratório</td><td>Implementar a base, a partir do esqueleto fornecido</td><td>Código das opções 1, 2 e 3, testado</td></tr>
+            <tr><td>3</td><td>Laboratório</td><td>Continuar a implementação</td><td>Código das opções 4 e 5, testado</td></tr>
+            <tr><td>4</td><td>Laboratório</td><td>Finalizar e testar</td><td>Testes finais, desafios extras (se sobrar tempo)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="entrega">
+      <h2>Entregáveis e avaliação</h2>
+
+      <div class="callout callout-warn">
+        <span class="callout-label">Atenção — instruções de entrega</span>
+        <ul>
+          <li><strong>Seu grupo deve pertencer à sua turma</strong>, pois a prática ocorre em dias diferentes para turmas diferentes.</li>
+          <li>Não se esqueça de colocar <strong>código e nome completo de todos os integrantes</strong> em cada um dos entregáveis.</li>
+          <li><strong>Apenas um integrante</strong> deve fazer a entrega.</li>
+          <li>Entregas com <strong>atraso de até 6 horas</strong> serão consideradas, acima disso serão desconsideradas.</li>
+        </ul>
+      </div>
+
+      <h3>Entregáveis</h3>
+      <ol class="deliver-list">
+        <li>Rascunho de projeto da aula 1 (foto do papel, documento digitado ou fluxograma — o formato é livre, o conteúdo não)</li>
+        <li>Código-fonte (<code>.c</code>) comentado, um arquivo por trio</li>
+      </ol>
+
+      <h3>Divisão de trabalho sugerida</h3>
+      <p>Com 5 operações principais para 3 integrantes, ponto de partida (adaptem como preferir, mas registrem no código a divisão real usada):</p>
+      <ul>
+        <li><strong>Integrante A:</strong> opções 1 (cadastrar) e 2 (listar)</li>
+        <li><strong>Integrante B:</strong> opções 3 (buscar) e 4 (corrigir)</li>
+        <li><strong>Integrante C:</strong> opção 5 (contar ocorrências) e integração do menu principal (loop, <code>switch</code>, testes finais)</li>
+      </ul>
+
+      <h3>Critérios de avaliação</h3>
+      <div class="rubric">
+        <div class="rubric-row">
+          <span class="rubric-label">Projeto (aula 1): pseudocódigo cobre as 5 opções + Sair, casos de teste identificados</span>
+          <span class="rubric-pct">20%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:20%"></div></div>
+        </div>
+        <div class="rubric-row">
+          <span class="rubric-label">Correção: funcionamento do menu e das operações, uso correto de <code>\0</code> e das funções de <code>string.h</code> (sem estourar vetor)</span>
+          <span class="rubric-pct">65%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:65%"></div></div>
+        </div>
+        <div class="rubric-row">
+          <span class="rubric-label">Divisão de trabalho evidente entre os três integrantes</span>
+          <span class="rubric-pct">15%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:15%"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="extras">
+      <h2>Desafios extras e erros comuns</h2>
+
+      <h3>Desafios extras (opcional, para quem terminar antes)</h3>
+      <ul>
+        <li>Gerar uma "etiqueta" concatenando nome + turma num novo vetor (ex.: "Ana Souza - Turma A"), usando <code>strcat</code> — atenção ao espaço, ele não é automático. (Obs.: será preciso um vetor extra para turma, não incluído no esqueleto — pensem em como adaptar a estrutura de dados.)</li>
+        <li>Percorrer todos os alunos e mostrar quem tem o nome com mais caracteres, usando <code>strlen</code></li>
+        <li>Ordenar a listagem por ordem alfabética do nome, usando <code>strcmp</code> dentro de um algoritmo de ordenação simples (bolha)</li>
+        <li>Impedir o cadastro de dois alunos com nomes idênticos</li>
+        <li>Na busca (opção 3), ignorar diferença entre maiúsculas e minúsculas</li>
+      </ul>
+
+      <h3>Erros comuns — de olho nisso</h3>
+
+      <blockquote>
+        <p><strong><code>scanf("%s", nome)</code> corta o nome no primeiro espaço.</strong> Nomes compostos como "Ana Paula" ficam só "Ana". Use <code>scanf(" %[^\n]", nome)</code> — repare no espaço antes do <code>%</code>, ele descarta o <code>\n</code> deixado pela leitura anterior.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong><code>if (nome1 == nome2)</code> não compara o conteúdo das strings</strong>, compara endereços de memória. Para comparar conteúdo, use <code>strcmp(nome1, nome2) == 0</code>.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong><code>strcat</code> não insere espaço sozinho</strong> — a mesma pegadinha do guia de estudo da Unidade II. Se quiser um espaço na etiqueta, adicione-o manualmente antes de concatenar.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong>Vetor pequeno demais para o nome copiado estoura memória vizinha.</strong> Se <code>TAM_NOME</code> for 50 e alguém tentar <code>strcpy</code> de uma string maior, o programa tem comportamento indefinido. Pensem em como evitar isso ao ler o nome.</p>
+      </blockquote>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade II — Projeto em trio · Laboratório de Técnicas de Programação</p>
+  </footer>
+</div>
+
+</body>
+</html>
