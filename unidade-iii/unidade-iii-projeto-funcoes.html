@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projeto — Cadastro de Alunos com Funções</title>
+<style>
+  :root {
+    --bg: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e1e6d8;
+    --border: #c7d0bb;
+    --ink: #1e2a22;
+    --ink-dim: #57634e;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #d1652b;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(30, 42, 34, 0.06), 0 6px 20px rgba(30, 42, 34, 0.05);
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10140e;
+      --surface: #171d14;
+      --surface-2: #1f2819;
+      --border: #38452e;
+      --ink: #eaeee1;
+      --ink-dim: #a7b39a;
+      --accent: #6fcf9e;
+      --accent-2: #e2884a;
+      --accent-2-bright: #eb9a5f;
+      --good: #6fcf9e;
+      --bad: #e2685a;
+      --null-fill: #e2884a;
+      --null-text: #241605;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10140e;
+    --surface: #171d14;
+    --surface-2: #1f2819;
+    --border: #38452e;
+    --ink: #eaeee1;
+    --ink-dim: #a7b39a;
+    --accent: #6fcf9e;
+    --accent-2: #e2884a;
+    --accent-2-bright: #eb9a5f;
+    --good: #6fcf9e;
+    --bad: #e2685a;
+    --null-fill: #e2884a;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent); color: var(--surface); }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- Header ---------- */
+
+  header.page-header { padding: 4rem 0 2rem; border-bottom: 1px solid var(--border); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+
+  h1.title { font-size: clamp(1.9rem, 1.4rem + 2vw, 2.7rem); letter-spacing: -0.01em; margin: 0.6rem 0 0.7rem; }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle { font-family: var(--font-serif); font-style: italic; color: var(--ink-dim); font-size: 1.1rem; max-width: 60ch; margin: 0 0 1.8rem; }
+
+  .meta-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+  .meta-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    box-shadow: var(--shadow);
+  }
+  .meta-item .meta-value { font-family: var(--font-mono); font-weight: 700; font-size: 1.3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .meta-item .meta-label { font-size: 0.8rem; color: var(--ink-dim); margin-top: 0.15rem; }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc { margin: 2.2rem 0 3rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+  nav.toc h2 { font-size: 0.78rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-dim); margin: 0 0 0.85rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  nav.toc a { text-decoration: none; color: var(--ink); font-family: var(--font-mono); font-size: 0.95rem; display: flex; gap: 0.75em; }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc a .num { color: var(--accent-2); }
+
+  /* ---------- Main ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 2rem; }
+  section.chapter { padding: 3rem 0; border-bottom: 1px solid var(--border); }
+  section.chapter:last-of-type { border-bottom: none; }
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: clamp(1.35rem, 1.15rem + 1vw, 1.7rem);
+    margin: 0 0 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+  section.chapter h2::before { content: counter(chapter, decimal-leading-zero); color: var(--accent-2); font-size: 0.85em; }
+
+  h3 { font-size: 1.02rem; margin: 2rem 0 0.8rem; color: var(--accent); }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 1.1rem; }
+  ul { margin: 0 0 1.1rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.4rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    line-height: 1.6;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0 0 1.3rem;
+    box-shadow: var(--shadow);
+  }
+  pre code { background: none; border: none; padding: 0; }
+
+  blockquote {
+    margin: 0 0 1.3rem;
+    padding: 0.9rem 1.3rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.1rem;
+    padding: 1rem 1.3rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  .callout .callout-label { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-2); display: block; margin-bottom: 0.4rem; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .callout.callout-warn { border: 1px solid var(--bad); border-style: solid; background: var(--surface); box-shadow: var(--shadow); }
+  .callout.callout-warn .callout-label { color: var(--bad); }
+  .callout.callout-warn ul { margin: 0; padding-left: 1.3em; }
+  .callout.callout-warn li { margin-bottom: 0.4rem; }
+  .callout.callout-warn li:last-child { margin-bottom: 0; }
+  .callout.callout-warn li strong { color: var(--bad); }
+
+  /* tables */
+  .table-scroll { overflow-x: auto; margin: 0 0 1.3rem; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 0.92rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-dim); background: var(--surface-2); }
+  tr:last-child td { border-bottom: none; }
+  td code { white-space: nowrap; }
+
+  /* checklist */
+  ul.checklist { list-style: none; padding: 0; margin: 0 0 1.3rem; display: grid; gap: 0.55rem; }
+  ul.checklist li {
+    display: flex;
+    gap: 0.7em;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+  }
+  ul.checklist li::before {
+    content: "";
+    flex: none;
+    width: 1.05em;
+    height: 1.05em;
+    margin-top: 0.15em;
+    border: 1.5px solid var(--accent);
+    border-radius: 3px;
+  }
+
+  /* rubric bars */
+  .rubric { display: grid; gap: 0.7rem; margin: 0 0 1.3rem; }
+  .rubric-row { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 1rem; align-items: center; }
+  .rubric-label { font-size: 0.92rem; }
+  .rubric-pct { font-family: var(--font-mono); font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .rubric-track { grid-column: 1 / -1; height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .rubric-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+
+  /* deliverables */
+  .deliver-list { list-style: none; padding: 0; margin: 0 0 1.3rem; display: grid; gap: 0.6rem; counter-reset: deliver; }
+  .deliver-list li { counter-increment: deliver; display: flex; gap: 0.8em; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.65rem 0.9rem; }
+  .deliver-list li::before {
+    content: counter(deliver);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--surface);
+    background: var(--accent);
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 0.85rem;
+  }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram { margin: 1.6rem 0 1.8rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.3rem 1.3rem 1rem; box-shadow: var(--shadow); }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption { font-size: 0.85rem; color: var(--ink-dim); margin-top: 0.9rem; line-height: 1.55; }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .box-sala { fill: var(--surface-2); stroke: var(--accent); stroke-width: 1.5; }
+  .box-lab { fill: var(--surface-2); stroke: var(--accent-2); stroke-width: 1.5; }
+  .box-title { font-family: var(--font-mono); font-weight: 700; fill: var(--ink); }
+  .box-tag-sala { fill: var(--accent); font-family: var(--font-mono); font-weight: 700; }
+  .box-tag-lab { fill: var(--accent-2); font-family: var(--font-mono); font-weight: 700; }
+  .box-foco { fill: var(--ink-dim); font-family: var(--font-serif); }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .bracket-sala { stroke: var(--accent); stroke-width: 1.25; fill: none; }
+  .bracket-lab { stroke: var(--accent-2); stroke-width: 1.25; fill: none; }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.25; }
+  .chip-box.chip-ref { stroke: var(--accent); stroke-width: 2; }
+  .chip-box.chip-val { stroke: var(--accent-2); stroke-width: 2; stroke-dasharray: 4 3; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .idx-text { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .connector { stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 3; fill: none; }
+
+  footer { padding: 2.5rem 0 4rem; color: var(--ink-dim); font-size: 0.85rem; font-family: var(--font-mono); }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    header.page-header { padding-top: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade III · Projeto em trio</p>
+    <h1 class="title">Cadastro de Alunos<br><span class="dim">agora com funções</span></h1>
+    <p class="subtitle">O mesmo cadastro de alunos da Unidade II, refatorado: cada opção do menu vira uma função com parâmetros, e as variáveis globais — <code>nomes</code>, <code>ras</code>, <code>totalAlunos</code> — somem do programa.</p>
+    <div class="meta-strip">
+      <div class="meta-item"><div class="meta-value">4 × 50min</div><div class="meta-label">aulas (9 a 12)</div></div>
+      <div class="meta-item"><div class="meta-value">3</div><div class="meta-label">alunos por grupo</div></div>
+      <div class="meta-item"><div class="meta-value">2 + 2</div><div class="meta-label">sala + laboratório</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#contexto"><span class="num">01</span> Contexto</a></li>
+      <li><a href="#sistema"><span class="num">02</span> As funções do sistema</a></li>
+      <li><a href="#design"><span class="num">03</span> Requisitos para o design das funções</a></li>
+      <li><a href="#requisitos"><span class="num">04</span> Requisitos técnicos obrigatórios</a></li>
+      <li><a href="#cronograma"><span class="num">05</span> Cronograma</a></li>
+      <li><a href="#entrega"><span class="num">06</span> Entregáveis e avaliação</a></li>
+      <li><a href="#extras"><span class="num">07</span> Desafios extras e erros comuns</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="contexto">
+      <h2>Contexto</h2>
+      <p>Este é o mesmo cadastro de alunos da Unidade II — nomes como strings de verdade, busca parcial, correção, contagem de letras. Só que lá ainda não existiam funções: <strong>todo</strong> o código de cada opção do menu morava dentro do próprio <code>switch</code>, direto no <code>main</code>, e <code>nomes</code>, <code>ras</code> e <code>totalAlunos</code> eram variáveis globais.</p>
+      <p>Agora que Semana 1 e Semana 2 cobriram protótipo/definição/chamada, parâmetros por valor, escopo, passagem por referência e vetores como parâmetro, chegou a hora de <strong>refatorar</strong> esse cadastro: cada opção vira uma função própria, com parâmetros — e as variáveis globais somem do programa.</p>
+
+      <blockquote>
+        <p>A avaliação considera tanto o planejamento (aula 9) quanto o código final (aulas 10-12).</p>
+      </blockquote>
+
+      <h3>Objetivos de aprendizagem</h3>
+      <ul>
+        <li><strong>Protótipo, definição e chamada</strong> de funções próprias — cada opção do menu (e mais algumas) vira uma função, declarada antes do <code>main</code> e definida depois dele.</li>
+        <li><strong>Eliminação de variáveis globais</strong>: <code>nomes</code>, <code>ras</code> e <code>totalAlunos</code> passam a ser locais ao <code>main</code>, chegando às demais funções exclusivamente por parâmetro.</li>
+        <li><strong>Passagem por valor x por referência</strong>: a maioria dos parâmetros (um RA, uma letra) é passada por valor. Quando uma função precisa <em>alterar</em>, para quem a chamou, uma variável que não seja vetor, ela só consegue fazer isso recebendo essa variável por referência, com um ponteiro. Cabe ao trio identificar, para cada função que for propor, se algum parâmetro se encaixa nesse caso.</li>
+        <li><strong>Vetores como parâmetro</strong>: <code>nomes</code> e <code>ras</code> são passados para várias funções — e, por decaírem para ponteiro automaticamente, toda função que os recebe já trabalha por referência sobre o vetor original. Isso exige passar o <strong>tamanho útil</strong> (<code>totalAlunos</code>) como parâmetro separado.</li>
+        <li><strong>Eliminar duplicação com funções auxiliares</strong>: o laço que procura um aluno pelo RA, que no gabarito da Unidade II aparecia copiado em dois <code>case</code> diferentes, agora vira uma única função (<code>buscarIndicePorRA</code>).</li>
+      </ul>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="sistema">
+      <h2>As funções do sistema</h2>
+      <p>O comportamento visível ao usuário — o menu e as 6 opções — <strong>não muda</strong> em relação à Unidade II. O que muda é a organização interna: em vez de código solto dentro de um <code>switch</code>, temos 8 funções com contrato (protótipo) bem definido.</p>
+
+      <pre><code>===== Cadastro de Alunos =====
+1. Cadastrar aluno
+2. Listar todos os alunos
+3. Buscar aluno por nome (busca parcial)
+4. Corrigir o nome de um aluno
+5. Contar ocorrências de uma letra no nome de um aluno
+6. Sair
+Escolha uma opção:</code></pre>
+
+      <h3>Funções obrigatórias</h3>
+      <p>Estas são as responsabilidades que o programa precisa ter — cabe ao trio <strong>propor</strong> a assinatura de cada uma (parâmetros e tipo de retorno), seguindo os <a href="#design">requisitos para o design das funções</a>.</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Função</th><th>Substitui</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>exibirMenu</code></td><td>os <code>printf</code> do menu</td></tr>
+            <tr><td><code>cadastrarAluno</code></td><td><code>case 1</code></td></tr>
+            <tr><td><code>listarAlunos</code></td><td><code>case 2</code></td></tr>
+            <tr><td><code>buscarPorNome</code></td><td><code>case 3</code></td></tr>
+            <tr><td><code>corrigirNome</code></td><td><code>case 4</code></td></tr>
+            <tr><td><code>contarOcorrenciasLetra</code></td><td><code>case 5</code></td></tr>
+            <tr><td><code>buscarIndicePorRA</code></td><td>lógica repetida nos <code>case 4</code> e <code>5</code></td></tr>
+            <tr><td><code>contarLetraNoNome</code></td><td>laço manual do <code>case 5</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 660 240" role="img" aria-label="Uma função que só lê uma variável de main recebe uma cópia, por valor; uma função que precisa alterar essa variável para quem chamou precisa recebê-la por referência, com um ponteiro para o mesmo espaço de memória">
+            <rect class="chip-box" x="250" y="20" width="160" height="50" rx="6"></rect>
+            <text class="chip-text" x="330" y="41" text-anchor="middle" font-size="12">main()</text>
+            <text class="chip-text" x="330" y="60" text-anchor="middle" font-size="13">int variavel = 2</text>
+
+            <line class="diagram-line" x1="290" y1="70" x2="130" y2="118"></line>
+            <polygon class="diagram-tri" points="120,124 132,118 128,130"></polygon>
+            <line class="diagram-line" x1="370" y1="70" x2="530" y2="118"></line>
+            <polygon class="diagram-tri" points="540,124 528,118 532,130"></polygon>
+
+            <rect class="chip-box chip-ref" x="20" y="128" width="220" height="60" rx="6"></rect>
+            <text class="chip-text" x="130" y="150" text-anchor="middle" font-size="11">funcaoQueAltera(</text>
+            <text class="chip-text" x="130" y="166" text-anchor="middle" font-size="11">&amp;variavel)</text>
+            <text x="130" y="210" text-anchor="middle" class="diagram-label strong" font-size="11">POR REFERÊNCIA</text>
+            <text x="130" y="224" text-anchor="middle" class="diagram-label" font-size="10">int *variavel — mesmo endereço, pode alterar</text>
+
+            <rect class="chip-box chip-val" x="420" y="128" width="220" height="60" rx="6"></rect>
+            <text class="chip-text" x="530" y="150" text-anchor="middle" font-size="11">funcaoQueSoLe(</text>
+            <text class="chip-text" x="530" y="166" text-anchor="middle" font-size="11">variavel)</text>
+            <text x="530" y="210" text-anchor="middle" class="diagram-label strong" font-size="11">POR VALOR</text>
+            <text x="530" y="224" text-anchor="middle" class="diagram-label" font-size="10">int variavel — cópia local, só lê</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura A.</strong> Uma função que precisa <em>alterar</em> uma variável de <code>main</code> (e "devolver" essa alteração) precisa recebê-la por referência — um ponteiro para o mesmo espaço de memória. Uma função que só precisa <em>ler</em> essa variável recebe uma cópia comum, por valor; qualquer alteração dela dentro da função não voltaria para <code>main</code>. Cabe ao trio identificar, entre as funções obrigatórias, em qual (ou quais) situação isso se aplica.</figcaption>
+      </figure>
+
+      <h3>O que cada função deve fazer</h3>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Função</th><th>Ação</th><th>Conceito exercitado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>cadastrarAluno</code></td><td>Ler nome (aceitando nome composto) e RA, guardar nas próximas posições livres, atualizar o total de alunos cadastrados</td><td>referência para alterar um valor do chamador, vetor como parâmetro</td></tr>
+            <tr><td><code>listarAlunos</code></td><td>Percorrer <code>nomes</code>/<code>ras</code> de <code>0</code> até <code>totalAlunos - 1</code></td><td>vetor como parâmetro, parâmetro por valor</td></tr>
+            <tr><td><code>buscarPorNome</code></td><td>Ler um trecho de nome; usar <code>strstr</code> para achar todos os alunos cujo nome contém o trecho</td><td>vetor como parâmetro</td></tr>
+            <tr><td><code>corrigirNome</code></td><td>Perguntar o RA, chamar <code>buscarIndicePorRA</code>, ler o novo nome e usar <code>strcpy</code></td><td>reaproveitamento de função auxiliar</td></tr>
+            <tr><td><code>contarOcorrenciasLetra</code></td><td>Perguntar RA e letra, chamar <code>buscarIndicePorRA</code>, depois <code>contarLetraNoNome</code></td><td>composição de funções</td></tr>
+            <tr><td><code>buscarIndicePorRA</code></td><td>Percorrer <code>ras[]</code> procurando o valor <code>ra</code>; devolver a posição ou <code>-1</code></td><td>função com retorno, evita duplicar o laço</td></tr>
+            <tr><td><code>contarLetraNoNome</code></td><td>Percorrer <strong>um único</strong> <code>nome[]</code> caractere a caractere (sem <code>strchr</code>/<code>strstr</code>)</td><td>vetor de <code>char</code> como parâmetro, percurso manual</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">Regra prática</span>
+        <p>Para cada função, decidam e justifiquem: quais dados de <code>main</code> ela precisa enxergar (viram parâmetros) e se algum desses parâmetros precisa ser alterado e "devolvido" para quem chamou — só nesse caso ele deve ser passado por referência, via ponteiro.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="design">
+      <h2>Requisitos para o design das funções</h2>
+      <p>Diferente da Unidade II, aqui <strong>não fornecemos</strong> o <code>main</code>, o menu nem os protótipos prontos: é o trio que deve <strong>propor</strong> a assinatura de cada função (nome, parâmetros e tipo de retorno) — não só implementar o corpo. Ao decidir cada assinatura, sigam estas regras:</p>
+
+      <ul class="checklist">
+        <li><strong>Nenhuma variável global.</strong> <code>nomes</code>, <code>ras</code> e <code>totalAlunos</code> (e quaisquer outras variáveis de estado do cadastro) devem ser declaradas dentro de <code>main</code> e chegar a qualquer outra função exclusivamente por parâmetro. Nenhuma dessas variáveis pode ser declarada fora de <code>main</code></li>
+        <li><strong>Todo parâmetro começa como candidato a passagem por valor.</strong> Só promovam um parâmetro a passagem por referência (ponteiro, <code>tipo *nome</code>) quando a função realmente precisar alterar, para quem a chamou, uma variável que não seja vetor</li>
+        <li><strong>Vetores já decaem para ponteiro automaticamente</strong> ao serem passados como parâmetro — toda função que os recebe já enxerga o vetor original, sem precisar de <code>*</code> explícito na assinatura. Ainda assim, como o vetor não "sabe" seu próprio tamanho, o tamanho útil (<code>totalAlunos</code>) deve viajar junto, como parâmetro separado, em toda função que precise percorrer os vetores</li>
+        <li><strong>Protótipo antes do <code>main</code>, definição depois dele</strong>, para todas as funções que criarem</li>
+        <li><strong>Nenhuma lógica duplicada.</strong> Se perceberem que duas funções diferentes precisam do mesmo laço de busca, extraiam essa lógica para uma função auxiliar reaproveitada pelas duas — não copiem o laço</li>
+        <li>Pensem também na <strong>granularidade</strong> de cada parâmetro: nem toda função que lida com nomes precisa receber o cadastro inteiro — algumas operam sobre um único nome</li>
+      </ul>
+
+      <blockquote>
+        <p>No rascunho da aula 9 (ver <a href="#entrega">Entregáveis</a>), documentem a assinatura proposta para cada função e, para cada parâmetro, a justificativa de por que ele é por valor ou por referência.</p>
+      </blockquote>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="requisitos">
+      <h2>Requisitos técnicos obrigatórios</h2>
+      <ul class="checklist">
+        <li><strong>Nenhuma variável global.</strong> <code>nomes</code>, <code>ras</code> e <code>totalAlunos</code> são locais a <code>main</code> e chegam às funções só por parâmetro</li>
+        <li>As 8 funções da tabela implementadas, com protótipo antes do <code>main</code> e definição depois dele</li>
+        <li>Cada parâmetro passado por <strong>valor</strong> ou por <strong>referência</strong> de acordo com a real necessidade da função: por padrão, valor; referência (ponteiro) apenas quando a função precisar alterar, para quem chamou, uma variável que não seja vetor</li>
+        <li><code>buscarIndicePorRA</code> implementada uma única vez e chamada tanto por <code>corrigirNome</code> quanto por <code>contarOcorrenciasLetra</code> — sem duplicar o laço de busca</li>
+        <li><code>contarLetraNoNome</code> recebe um único vetor de <code>char</code> e percorre-o manualmente (sem <code>strchr</code>/<code>strstr</code>)</li>
+        <li><code>MAX_ALUNOS</code> e <code>TAM_NOME</code> continuam como constantes (<code>#define</code>)</li>
+        <li>Leitura de nome aceita nomes compostos; uso de no mínimo <code>strcpy</code> e <code>strstr</code> (herdado da Unidade II)</li>
+        <li>Programa não estoura vetor nem trava com entrada razoável</li>
+        <li>Menu roda em loop até a opção "Sair"</li>
+      </ul>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="cronograma">
+      <h2>Cronograma</h2>
+
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 650 210" role="img" aria-label="Quatro aulas: as duas primeiras em sala para planejar e iniciar a implementação, as duas seguintes em laboratório para continuar e finalizar, com troca de assinaturas entre trios na transição">
+            <line class="bracket-sala" x1="20" y1="40" x2="20" y2="34"></line>
+            <line class="bracket-sala" x1="20" y1="34" x2="310" y2="34"></line>
+            <line class="bracket-sala" x1="310" y1="34" x2="310" y2="40"></line>
+            <text x="165" y="24" text-anchor="middle" class="box-tag-sala" font-size="12">SALA — PLANEJAR E COMEÇAR</text>
+
+            <line class="bracket-lab" x1="340" y1="40" x2="340" y2="34"></line>
+            <line class="bracket-lab" x1="340" y1="34" x2="630" y2="34"></line>
+            <line class="bracket-lab" x1="630" y1="34" x2="630" y2="40"></line>
+            <text x="485" y="24" text-anchor="middle" class="box-tag-lab" font-size="12">LABORATÓRIO — DESENVOLVER E FINALIZAR</text>
+
+            <rect class="box-sala" x="20" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-sala" x="180" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-lab" x="340" y="50" width="130" height="100" rx="8"></rect>
+            <rect class="box-lab" x="500" y="50" width="130" height="100" rx="8"></rect>
+
+            <g text-anchor="middle">
+              <text x="85" y="72" class="box-title" font-size="13">AULA 9</text>
+              <text x="85" y="90" class="box-tag-sala" font-size="11">Sala</text>
+              <text x="85" y="112" class="box-foco" font-size="11">Planejar</text>
+              <text x="85" y="128" class="box-foco" font-size="11">assinaturas</text>
+
+              <text x="245" y="72" class="box-title" font-size="13">AULA 10</text>
+              <text x="245" y="90" class="box-tag-sala" font-size="11">Sala</text>
+              <text x="245" y="112" class="box-foco" font-size="11">Iniciar</text>
+              <text x="245" y="128" class="box-foco" font-size="11">implementação</text>
+
+              <text x="405" y="72" class="box-title" font-size="13">AULA 11</text>
+              <text x="405" y="90" class="box-tag-lab" font-size="11">Laboratório</text>
+              <text x="405" y="112" class="box-foco" font-size="11">Continuar</text>
+              <text x="405" y="128" class="box-foco" font-size="11">implementação</text>
+
+              <text x="565" y="72" class="box-title" font-size="13">AULA 12</text>
+              <text x="565" y="90" class="box-tag-lab" font-size="11">Laboratório</text>
+              <text x="565" y="112" class="box-foco" font-size="11">Finalizar e</text>
+              <text x="565" y="128" class="box-foco" font-size="11">entregar</text>
+            </g>
+
+            <line class="diagram-line" x1="150" y1="100" x2="178" y2="100" stroke-dasharray="3 3"></line>
+            <polygon class="diagram-tri" points="180,100 173,96 173,104"></polygon>
+
+            <line class="diagram-line" x1="310" y1="100" x2="338" y2="100"></line>
+            <polygon class="diagram-tri" points="340,100 333,96 333,104"></polygon>
+
+            <line class="diagram-line" x1="470" y1="100" x2="498" y2="100"></line>
+            <polygon class="diagram-tri" points="500,100 493,96 493,104"></polygon>
+
+            <text x="165" y="172" text-anchor="middle" class="diagram-label strong" font-size="11">troca de assinaturas</text>
+            <text x="165" y="186" text-anchor="middle" class="diagram-label strong" font-size="11">entre trios</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura B.</strong> Duas aulas de planejamento e início no papel/quadro, duas de implementação em laboratório. Na virada da Aula 9 para a Aula 10, cada trio troca seu rascunho de assinaturas com outro trio por 5 minutos.</figcaption>
+      </figure>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th>Aula</th><th>Local</th><th>Foco</th><th>O que produzir</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>9</td><td>Sala</td><td>Revisar o código da Unidade II, identificando globais e código duplicado; esboçar as 8 assinaturas de função</td><td>Lista das 8 funções com assinatura completa e justificativa de valor/referência</td></tr>
+            <tr><td>10</td><td>Sala</td><td>Início da implementação, com apoio do professor</td><td>Código compilando, menu funcionando, opção 1 testada</td></tr>
+            <tr><td>11</td><td>Laboratório</td><td>Continuar a implementação</td><td><code>listarAlunos</code>, <code>buscarPorNome</code>, <code>buscarIndicePorRA</code> e <code>corrigirNome</code> testadas</td></tr>
+            <tr><td>12</td><td>Laboratório</td><td>Finalizar e testar</td><td><code>contarOcorrenciasLetra</code> e <code>contarLetraNoNome</code> testadas, revisão final sem variáveis globais</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="entrega">
+      <h2>Entregáveis e avaliação</h2>
+
+      <h3>Entregáveis</h3>
+      <ol class="deliver-list">
+        <li>Rascunho de planejamento da aula 9 (as 8 assinaturas de função, com decisão valor/referência justificada)</li>
+        <li>Código-fonte (<code>.c</code>) comentado, um arquivo por trio</li>
+      </ol>
+
+      <h3>Divisão de trabalho sugerida</h3>
+      <ul>
+        <li><strong>Integrante A:</strong> <code>exibirMenu</code>, <code>cadastrarAluno</code>, <code>listarAlunos</code></li>
+        <li><strong>Integrante B:</strong> <code>buscarPorNome</code>, <code>corrigirNome</code>, <code>buscarIndicePorRA</code></li>
+        <li><strong>Integrante C:</strong> <code>contarOcorrenciasLetra</code>, <code>contarLetraNoNome</code>, integração final do <code>main</code> e dos protótipos</li>
+      </ul>
+
+      <h3>Critérios de avaliação</h3>
+      <div class="rubric">
+        <div class="rubric-row">
+          <span class="rubric-label">Planejamento (aula 9): as 8 assinaturas de função corretas, com decisão de valor/referência justificada</span>
+          <span class="rubric-pct">20%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:20%"></div></div>
+        </div>
+        <div class="rubric-row">
+          <span class="rubric-label">Correção: nenhuma variável global, <code>totalAlunos</code> por referência onde necessário, <code>buscarIndicePorRA</code> reaproveitada, funcionamento correto do menu</span>
+          <span class="rubric-pct">65%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:65%"></div></div>
+        </div>
+        <div class="rubric-row">
+          <span class="rubric-label">Divisão de trabalho evidente entre os três integrantes</span>
+          <span class="rubric-pct">15%</span>
+          <div class="rubric-track"><div class="rubric-fill" style="width:15%"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="extras">
+      <h2>Desafios extras e erros comuns</h2>
+
+      <h3>Desafios extras (opcional, para quem terminar antes)</h3>
+      <ul>
+        <li>Escrever <code>void trocarAlunos(char nomes[][TAM_NOME], int ras[], int i, int j)</code> que troca de posição os dados de dois alunos, e usá-la para ordenar a listagem por nome com bolha (<code>strcmp</code> dentro do algoritmo de ordenação)</li>
+        <li>Escrever <code>int existeNomeDuplicado(char nomes[][TAM_NOME], int totalAlunos, char novoNome[])</code> usando <code>strcmp</code>, chamada dentro de <code>cadastrarAluno</code> para impedir nomes repetidos</li>
+        <li>Escrever <code>void gerarEtiqueta(char destino[], char nome[], char turma[])</code> usando <code>strcat</code> (com o cuidado do espaço, que não é automático)</li>
+        <li>Escrever <code>int indiceNomeMaisLongo(char nomes[][TAM_NOME], int totalAlunos)</code> usando <code>strlen</code>, numa nova opção de menu</li>
+        <li>Tornar a busca (opção 3) sem diferenciar maiúsculas de minúsculas</li>
+      </ul>
+
+      <h3>Erros comuns — de olho nisso</h3>
+
+      <blockquote>
+        <p><strong>Esquecer o <code>*</code> ao alterar um parâmetro passado por referência.</strong> Se decidirem passar <code>totalAlunos</code> (ou qualquer outra variável) por referência para poder alterá-la dentro de uma função, escrever <code>totalAlunos++</code> direto não funciona como esperado — isso incrementa o ponteiro, não o valor apontado. O certo é <code>(*totalAlunos)++</code> ou <code>*totalAlunos = *totalAlunos + 1</code>.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong>Passar o vetor mas esquecer o tamanho.</strong> <code>nomes</code> e <code>ras</code> não "sabem" quantos alunos estão cadastrados — por isso <code>totalAlunos</code> sempre viaja junto, como parâmetro separado, em toda função que precisa percorrer os vetores.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong>Recriar as variáveis como globais "pra facilitar".</strong> Declarar <code>nomes</code>, <code>ras</code> ou <code>totalAlunos</code> fora de <code>main</code> anula o objetivo do projeto — a ideia é justamente aprender a fazer esses dados circularem só por parâmetro.</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong>Confundir um ponteiro para uma única variável (ex.: <code>int *variavel</code>) com um vetor (ex.: <code>int vetor[]</code>)</strong> na assinatura. São duas formas diferentes de "passagem por referência": uma explícita (o <code>*</code>, para uma única variável), outra implícita (o decaimento automático de vetor para ponteiro).</p>
+      </blockquote>
+
+      <blockquote>
+        <p><strong>Chamar uma função antes do protótipo dela existir no arquivo.</strong> Sem o protótipo lá em cima, o compilador não conhece a função na hora da chamada dentro de <code>main</code> — mesmo que a definição exista mais abaixo no arquivo.</p>
+      </blockquote>
+
+      <div class="callout">
+        <span class="callout-label">Ainda valem</span>
+        <p>Os erros comuns de string da Unidade II continuam relevantes: <code>scanf(" %[^\n]", nome)</code> para nome composto, <code>strcmp</code> (não <code>==</code>) para comparar conteúdo, espaço manual antes de <code>strcat</code>, e cuidado para não estourar <code>TAM_NOME</code> num <code>strcpy</code>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade III — Projeto em trio · Laboratório de Técnicas de Programação</p>
+  </footer>
+</div>
+
+</body>
+</html>
