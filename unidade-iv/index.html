@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Laboratório de Técnicas de Programação</title>
+<title>UNIDADE IV — Ponteiros em C</title>
 <style>
   :root {
     --bg: #eef0ea;
@@ -127,6 +127,16 @@
 
   main { padding: 2.5rem 0 5rem; }
 
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 2.4rem 0 1rem;
+  }
+  .section-label:first-child { margin-top: 0; }
+
   .card-list {
     list-style: none;
     margin: 0;
@@ -150,6 +160,13 @@
     border-color: var(--accent);
     transform: translateY(-1px);
   }
+  .card.is-placeholder {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
+    border-style: dashed;
+  }
+  .card.is-placeholder:hover { transform: none; }
 
   .card-kicker {
     font-family: var(--font-mono);
@@ -158,6 +175,7 @@
     text-transform: uppercase;
     color: var(--accent);
   }
+  .card.is-placeholder .card-kicker { color: var(--ink-dim); }
 
   .card-title {
     font-family: var(--font-mono);
@@ -187,37 +205,31 @@
   <div class="wrap">
     <header class="page-header">
       <div class="eyebrow">Unaerp · Lab. de Tec. de Programação</div>
-      <h1 class="title">Laboratório de <span class="dim">Técnicas de Programação</span></h1>
-      <p class="subtitle">Material de estudo do curso, organizado por unidade.</p>
+      <h1 class="title">UNIDADE IV <span class="dim">— Ponteiros em C</span></h1>
+      <p class="subtitle">Recursos de estudo desta unidade, organizados por aula.</p>
     </header>
 
     <main>
+      <p class="section-label">Aulas 1 a 4 — Aritmética, vetores/strings e alocação dinâmica</p>
       <ul class="card-list">
         <li>
-          <a class="card" href="unidade-ii/index.html">
-            <div class="card-kicker">Unidade II</div>
-            <h2 class="card-title">Strings em C</h2>
-            <p class="card-desc">Guia de estudo e projeto prático de manipulação de strings em C.</p>
-          </a>
-        </li>
-        <li>
-          <a class="card" href="unidade-iii/index.html">
-            <div class="card-kicker">Unidade III</div>
-            <h2 class="card-title">Subrotinas em C</h2>
-            <p class="card-desc">Protótipo, definição e chamada de funções; parâmetros, escopo e pilha de execução.</p>
-          </a>
-        </li>
-        <li>
-          <a class="card" href="unidade-iv/index.html">
-            <div class="card-kicker">Unidade IV</div>
+          <a class="card" href="unidade-iv-ponteiros.html">
+            <div class="card-kicker">Guia de estudo</div>
             <h2 class="card-title">Ponteiros em C</h2>
-            <p class="card-desc">Aritmética de ponteiros, equivalência com vetores e strings, e alocação dinâmica de memória.</p>
+            <p class="card-desc">Aritmética de ponteiros e o "passo" de cada tipo; equivalência entre vetor e ponteiro; percurso de vetores e strings; char *s x char s[]; busca e inversão de vetor com ponteiros; malloc, calloc, free, vazamento e ponteiro pendurado.</p>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="unidade-iv-ponteiros-print.html">
+            <div class="card-kicker">Versão para impressão</div>
+            <h2 class="card-title">Ponteiros em C — apostila</h2>
+            <p class="card-desc">Mesmo conteúdo do guia, formatado para papel A4, com sumário, quizzes estáticos e gabarito comentado no final.</p>
           </a>
         </li>
       </ul>
     </main>
 
-    <footer class="page-footer">Lab. de Técnicas de Programação</footer>
+    <footer class="page-footer">UNIDADE IV</footer>
   </div>
 </body>
 </html>
