@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structs em C — Unidade V</title>
+<style>
+  :root {
+    --bg: #eef0ea;
+    --surface: #ffffff;
+    --surface-2: #e1e6d8;
+    --border: #c7d0bb;
+    --ink: #1e2a22;
+    --ink-dim: #57634e;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #d1652b;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(30, 42, 34, 0.06), 0 6px 20px rgba(30, 42, 34, 0.05);
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10140e;
+      --surface: #171d14;
+      --surface-2: #1f2819;
+      --border: #38452e;
+      --ink: #eaeee1;
+      --ink-dim: #a7b39a;
+      --accent: #6fcf9e;
+      --accent-2: #e2884a;
+      --accent-2-bright: #eb9a5f;
+      --good: #6fcf9e;
+      --bad: #e2685a;
+      --null-fill: #e2884a;
+      --null-text: #241605;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10140e;
+    --surface: #171d14;
+    --surface-2: #1f2819;
+    --border: #38452e;
+    --ink: #eaeee1;
+    --ink-dim: #a7b39a;
+    --accent: #6fcf9e;
+    --accent-2: #e2884a;
+    --accent-2-bright: #eb9a5f;
+    --good: #6fcf9e;
+    --bad: #e2685a;
+    --null-fill: #e2884a;
+    --null-text: #241605;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent); color: var(--surface); }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { text-decoration-thickness: 2px; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 4rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+
+  h1.title {
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.9rem);
+    letter-spacing: -0.01em;
+    margin: 0.6rem 0 0.7rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1.15rem;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+  .call-strip span.fn {
+    padding: 0.35em 0.7em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 2.5rem 0 3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  nav.toc h2 {
+    font-size: 0.78rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.85rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.9rem 0 0.2rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { padding-bottom: 2rem; }
+
+  section.chapter {
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  main { counter-reset: chapter; }
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: clamp(1.4rem, 1.2rem + 1vw, 1.8rem);
+    margin: 0 0 1.3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 2rem 0 0.8rem;
+    color: var(--accent);
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 1.1rem; }
+  ul, ol.plain { margin: 0 0 1.1rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.4rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    line-height: 1.6;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    overflow-x: auto;
+    margin: 0 0 1.3rem;
+    box-shadow: var(--shadow);
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  .code-compare {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 0 0 1.3rem;
+  }
+  @media (min-width: 680px) {
+    .code-compare { grid-template-columns: 1fr 1fr; }
+  }
+  .code-compare .panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .code-compare .panel-label.bad { color: var(--bad); }
+  .code-compare .panel-label.good { color: var(--good); }
+  .code-compare pre { margin-bottom: 0; height: 100%; }
+
+  blockquote {
+    margin: 0 0 1.3rem;
+    padding: 0.9rem 1.3rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1.3rem;
+    padding: 1rem 1.3rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .legend-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.9rem 0 1.4rem;
+  }
+  .legend-chip {
+    font-family: var(--font-mono);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+  }
+  .legend-chip .swatch {
+    width: 0.85em;
+    height: 0.85em;
+    border-radius: 2px;
+    display: inline-block;
+    flex: none;
+  }
+
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin: 1.3rem 0;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.1rem;
+    box-shadow: var(--shadow);
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1rem;
+  }
+  .type-card p { margin: 0.4rem 0 0; font-size: 0.92rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.6rem 0 1.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.3rem 1.3rem 1rem;
+    box-shadow: var(--shadow);
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    margin-top: 0.9rem;
+    line-height: 1.55;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .chip-muted { opacity: 0.5; }
+  .chip-accent2 { fill: var(--accent-2); }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+
+  /* ---------- Trace table ---------- */
+
+  .trace-wrap {
+    overflow-x: auto;
+    margin: 0 0 1.3rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+  .trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    background: var(--surface);
+  }
+  .trace-table th, .trace-table td {
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .trace-table thead th {
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .trace-table td.trace-desc {
+    white-space: normal;
+    font-family: var(--font-serif);
+    font-size: 0.88rem;
+    min-width: 230px;
+  }
+  .trace-table tr:last-child td { border-bottom: none; }
+  .trace-step { color: var(--accent-2); font-weight: 700; }
+  .trace-changed { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  .trace-gone { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- Quiz ---------- */
+
+  .quiz {
+    margin: 2.2rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.4rem 1.5rem 1.5rem;
+  }
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.1rem;
+  }
+  .quiz-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 0.78rem;
+    color: var(--accent-2);
+    margin: 0;
+  }
+  .quiz-score {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+  }
+  .quiz-q { margin-bottom: 1.4rem; }
+  .quiz-q:last-child { margin-bottom: 0; }
+  .quiz-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.7rem;
+    color: var(--ink);
+  }
+  .quiz-num {
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    margin-right: 0.4em;
+  }
+  .quiz-options {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .quiz-opt {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.55rem 0.85rem;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--accent); }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-opt:disabled:not(.quiz-correct):not(.quiz-wrong) { opacity: 0.5; }
+  .quiz-opt.quiz-correct {
+    background: var(--good);
+    border-color: var(--good);
+    color: var(--surface);
+  }
+  .quiz-opt.quiz-wrong {
+    background: var(--bad);
+    border-color: var(--bad);
+    color: var(--surface);
+  }
+  .quiz-feedback {
+    margin: 0.7rem 0 0;
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .quiz-feedback.feedback-correct { border-color: var(--good); }
+  .quiz-feedback.feedback-wrong { border-color: var(--bad); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quiz-opt { transition: none; }
+  }
+
+  footer {
+    padding: 2.5rem 0 4rem;
+    color: var(--ink-dim);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    header.page-header { padding-top: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade V · Laboratório de Técnicas de Programação</p>
+    <h1 class="title">Registros (structs) em C<br><span class="dim">tipos compostos, typedef e ponteiro de struct</span></h1>
+    <p class="subtitle">Até agora cada variável guardava uma informação simples, ou várias do mesmo tipo. Agora vamos agrupar informações diferentes que descrevem uma única coisa, como uma carta de baralho, um pixel ou um número complexo, em um novo tipo criado por nós: o registro, ou <code>struct</code>. Depois, vamos encurtar os nomes com <code>typedef</code> e acessar structs por ponteiros com o operador <code>-&gt;</code>.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">struct carta {…}</span>
+      <span class="arrow">→</span>
+      <span class="fn">typedef … Carta</span>
+      <span class="arrow">→</span>
+      <span class="fn">Carta *cp = &amp;c1</span>
+      <span class="arrow">→</span>
+      <span class="fn">cp-&gt;valor</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li class="toc-group" role="presentation">Parte 1 — Registros (structs)</li>
+      <li><a href="#o-que-e"><span class="num">01</span> O que é um registro</a></li>
+      <li><a href="#problematica"><span class="num">02</span> A problemática: complexos, pixels e cartas</a></li>
+      <li><a href="#declarando"><span class="num">03</span> Declarando o tipo <code>struct</code></a></li>
+      <li><a href="#variaveis"><span class="num">04</span> Variáveis, vetores de structs e inicialização</a></li>
+      <li><a href="#operador-ponto"><span class="num">05</span> Acessando atributos: o operador ponto</a></li>
+
+      <li class="toc-group" role="presentation">Parte 2 — typedef</li>
+      <li><a href="#typedef"><span class="num">06</span> Verboso, não? <code>typedef</code></a></li>
+      <li><a href="#tres-formas"><span class="num">07</span> Três formas de usar <code>typedef</code> com struct</a></li>
+
+      <li class="toc-group" role="presentation">Parte 3 — Ponteiro de struct</li>
+      <li><a href="#ponteiro-struct"><span class="num">08</span> Ponteiro de struct: <code>(*cp).valor</code> ≡ <code>cp-&gt;valor</code></a></li>
+      <li><a href="#structs-funcoes"><span class="num">09</span> Structs e funções</a></li>
+
+      <li class="toc-group" role="presentation">Parte 4 (lab) — Prática</li>
+      <li><a href="#exercicios"><span class="num">10</span> Exercícios de laboratório</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="o-que-e">
+      <h2>O que é um registro</h2>
+      <p>Até aqui trabalhamos com os tipos nativos (<code>int</code>, <code>float</code>, <code>char</code>), com vetores, com strings e com ponteiros. Todos representam bem informações <em>simples</em>: um número, uma letra, uma lista de valores <strong>do mesmo tipo</strong>.</p>
+      <p>A maior parte das coisas que queremos representar em um programa, porém, é formada por <strong>várias informações relacionadas</strong> que, juntas, descrevem uma única entidade. Para isso a linguagem C oferece os <strong>registros</strong>, chamados de <strong>structs</strong>.</p>
+      <blockquote><p><strong>Registro (struct):</strong> tipo de dados capaz de representar tipos <strong>complexos</strong> e <strong>compostos</strong>, agrupando sob um único nome um conjunto de variáveis, possivelmente de tipos diferentes.</p></blockquote>
+      <p>Cada variável que compõe um registro é chamada de <strong>atributo</strong> (também aparece como <em>campo</em> ou <em>membro</em>).</p>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="problematica">
+      <h2>A problemática: complexos, pixels e cartas</h2>
+      <h3>Números complexos (ℂ)</h3>
+      <p>Um número complexo como <code>3 + 2i</code> não é <em>um</em> número: é composto pela parte <strong>real</strong> e pela parte <strong>imaginária</strong>. Sem structs, cada complexo exige duas variáveis soltas:</p>
+<pre><code><span class="tok-kw">float</span> z1_real, z1_imag;
+<span class="tok-kw">float</span> z2_real, z2_imag;</code></pre>
+      <p>Nada no código diz que <code>z1_real</code> e <code>z1_imag</code> pertencem ao mesmo número. E se quisermos uma função que <strong>retorne</strong> um complexo? Uma função em C só retorna <strong>um</strong> valor…</p>
+
+      <h3>Pixel</h3>
+      <p>Cada ponto de uma imagem colorida é descrito por quatro componentes, <strong>Red</strong>, <strong>Green</strong>, <strong>Blue</strong> e <strong>Alpha</strong> (transparência), cada um de <strong>0 a 255</strong>. Uma imagem pequenina de <strong>64 × 64</strong> tem <strong>4096</strong> pixels; com variáveis independentes seriam 4096 × 4 = <strong>16384 variáveis</strong>, ou quatro vetores paralelos que precisariam ser mantidos sincronizados à mão. Inviável.</p>
+
+      <h3>Carta de baralho</h3>
+      <p>Uma carta também é uma informação composta: tem <strong>valor</strong>, <strong>naipe</strong>, <strong>cor</strong> e <strong>nome</strong>.</p>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 530 180" role="img" aria-label="Três moldes de struct: Complexo com real e imag; Pixel com red, green, blue e alpha de 0 a 255; Carta com valor, naipe, cor e nome">
+<rect class="cell-box chip-active" x="10" y="20" width="150" height="78" rx="5"></rect>
+<line class="diagram-line" x1="10" y1="46" x2="160" y2="46"></line>
+<text class="code-label" x="85.0" y="37" font-size="12" text-anchor="middle">Complexo</text>
+<line x1="20" y1="53" x2="20" y2="91" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="30" y="64" font-size="11">real</text>
+<text class="diagram-label" x="30" y="86" font-size="11">imag</text><rect class="cell-box chip-active" x="185" y="20" width="160" height="122" rx="5"></rect>
+<line class="diagram-line" x1="185" y1="46" x2="345" y2="46"></line>
+<text class="code-label" x="265.0" y="37" font-size="12" text-anchor="middle">Pixel</text>
+<line x1="195" y1="53" x2="195" y2="135" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="205" y="64" font-size="11">red    0..255</text>
+<text class="diagram-label" x="205" y="86" font-size="11">green  0..255</text>
+<text class="diagram-label" x="205" y="108" font-size="11">blue   0..255</text>
+<text class="diagram-label" x="205" y="130" font-size="11">alpha  0..255</text><rect class="cell-box chip-active" x="370" y="20" width="150" height="122" rx="5"></rect>
+<line class="diagram-line" x1="370" y1="46" x2="520" y2="46"></line>
+<text class="code-label" x="445.0" y="37" font-size="12" text-anchor="middle">Carta</text>
+<line x1="380" y1="53" x2="380" y2="135" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="390" y="64" font-size="11">valor</text>
+<text class="diagram-label" x="390" y="86" font-size="11">naipe</text>
+<text class="diagram-label" x="390" y="108" font-size="11">cor</text>
+<text class="diagram-label" x="390" y="130" font-size="11">nome</text>
+<text class="diagram-label strong" x="265" y="168" font-size="11" text-anchor="middle">atributos: várias informações, um único nome</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> Os três problemas da aula, desenhados como na lousa: cada caixa é um <em>tipo</em> composto, e a barra laranja marca seus <strong>atributos</strong>. Nenhum deles cabe em um único <code>int</code>, <code>float</code> ou <code>char</code>.</figcaption>
+      </figure>
+      <p>Veja duas cartas concretas. Repare que <strong>as duas têm os mesmos atributos</strong>, mudam apenas os valores:</p>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 520 160" role="img" aria-label="Duas variáveis do tipo struct carta: carta1 com valor 14, naipe espadas, cor P, nome A; carta2 com valor 7, naipe copas, cor V, nome 7">
+<text class="diagram-label strong" x="260" y="16" font-size="11" text-anchor="middle">mesmo molde (struct carta), valores diferentes</text>
+<rect class="cell-box chip-active" x="40" y="30" width="190" height="122" rx="5"></rect>
+<line class="diagram-line" x1="40" y1="56" x2="230" y2="56"></line>
+<text class="code-label" x="135.0" y="47" font-size="12" text-anchor="middle">carta1</text>
+<line x1="50" y1="63" x2="50" y2="145" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="60" y="74" font-size="11">valor</text>
+<text class="cell-char" x="220" y="74" font-size="11" text-anchor="end">14</text>
+<text class="diagram-label" x="60" y="96" font-size="11">naipe</text>
+<text class="cell-char" x="220" y="96" font-size="11" text-anchor="end">"espadas"</text>
+<text class="diagram-label" x="60" y="118" font-size="11">cor</text>
+<text class="cell-char" x="220" y="118" font-size="11" text-anchor="end">'P'</text>
+<text class="diagram-label" x="60" y="140" font-size="11">nome</text>
+<text class="cell-char" x="220" y="140" font-size="11" text-anchor="end">'A'</text><rect class="cell-box chip-active" x="290" y="30" width="190" height="122" rx="5"></rect>
+<line class="diagram-line" x1="290" y1="56" x2="480" y2="56"></line>
+<text class="code-label" x="385.0" y="47" font-size="12" text-anchor="middle">carta2</text>
+<line x1="300" y1="63" x2="300" y2="145" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="310" y="74" font-size="11">valor</text>
+<text class="cell-char" x="470" y="74" font-size="11" text-anchor="end">7</text>
+<text class="diagram-label" x="310" y="96" font-size="11">naipe</text>
+<text class="cell-char" x="470" y="96" font-size="11" text-anchor="end">"copas"</text>
+<text class="diagram-label" x="310" y="118" font-size="11">cor</text>
+<text class="cell-char" x="470" y="118" font-size="11" text-anchor="end">'V'</text>
+<text class="diagram-label" x="310" y="140" font-size="11">nome</text>
+<text class="cell-char" x="470" y="140" font-size="11" text-anchor="end">'7'</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> <code>carta1</code> e <code>carta2</code> são duas <em>variáveis</em> do mesmo tipo: possuem exatamente os mesmos atributos, só mudam os valores guardados em cada um.</figcaption>
+      </figure>
+      <div class="callout">
+        <span class="callout-label">A ideia central</span>
+        <p>Uma struct é um <strong>molde</strong>: descreve <em>quais</em> atributos existem. A partir dele criamos quantas variáveis quisermos, cada uma com seus próprios valores.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="declarando">
+      <h2>Declarando o tipo <code>struct</code></h2>
+      <p>A sintaxe para <strong>definir o tipo</strong> é:</p>
+<pre><code><span class="tok-kw">struct</span> nome_do_tipo {
+    tipo atributo1;
+    tipo atributo2;
+    ...
+};</code></pre>
+      <p>Para a carta de baralho, exatamente como na lousa:</p>
+<pre><code><span class="tok-comment">// tipo carta</span>
+<span class="tok-kw">struct</span> carta {
+    <span class="tok-kw">int</span>  valor;
+    <span class="tok-kw">char</span> naipe[10];
+    <span class="tok-kw">char</span> cor;
+    <span class="tok-kw">char</span> nome;
+};</code></pre>
+      <ul>
+        <li>O <strong>ponto e vírgula</strong> depois da chave, <code>};</code>, é obrigatório. Esquecê-lo gera erros de compilação confusos nas linhas seguintes.</li>
+        <li>Os atributos podem ser de tipos diferentes, inclusive vetores, como <code>naipe[10]</code>.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">Declarar o tipo não cria variável</span>
+        <p>Esse bloco apenas ensina ao compilador como é o novo tipo <code>struct carta</code>; nenhuma memória é reservada. Por isso costumamos escrevê-lo <strong>fora do <code>main</code></strong>, logo após os <code>#include</code>, para que todas as funções do programa conheçam o tipo.</p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="variaveis">
+      <h2>Variáveis, vetores de structs e inicialização</h2>
+      <p>Com o tipo definido, criamos variáveis como faríamos com um <code>int</code>, sempre escrevendo o tipo completo, <code>struct carta</code>:</p>
+<pre><code><span class="tok-comment">// variáveis carta</span>
+<span class="tok-kw">struct</span> carta carta1;
+<span class="tok-kw">struct</span> carta baralho[52];</code></pre>
+      <ul>
+        <li><code>carta1</code> é <strong>uma</strong> carta.</li>
+        <li><code>baralho</code> é um <strong>vetor de 52 cartas</strong>: cada posição do vetor é uma struct completa.</li>
+      </ul>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 510 162" role="img" aria-label="Vetor baralho de 52 posições; cada posição contém os quatro atributos valor, naipe, cor e nome; baralho[0].valor vale 7">
+<text class="diagram-label strong" x="60" y="18" font-size="11" text-anchor="middle">baralho[0]</text>
+<rect class="cell-box" x="20" y="26" width="80" height="104" rx="4"></rect>
+<text class="diagram-label" x="26" y="43" font-size="9.5">valor</text>
+<text class="cell-char" x="94" y="43" font-size="11" text-anchor="end">7</text>
+<line class="diagram-line" x1="20" y1="52" x2="100" y2="52" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="26" y="69" font-size="9.5">naipe</text>
+<line class="diagram-line" x1="20" y1="78" x2="100" y2="78" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="26" y="95" font-size="9.5">cor</text>
+<line class="diagram-line" x1="20" y1="104" x2="100" y2="104" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="26" y="121" font-size="9.5">nome</text>
+<text class="diagram-label strong" x="158" y="18" font-size="11" text-anchor="middle">baralho[1]</text>
+<rect class="cell-box" x="118" y="26" width="80" height="104" rx="4"></rect>
+<text class="diagram-label" x="124" y="43" font-size="9.5">valor</text>
+<text class="cell-char" x="192" y="43" font-size="11" text-anchor="end">?</text>
+<line class="diagram-line" x1="118" y1="52" x2="198" y2="52" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="124" y="69" font-size="9.5">naipe</text>
+<line class="diagram-line" x1="118" y1="78" x2="198" y2="78" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="124" y="95" font-size="9.5">cor</text>
+<line class="diagram-line" x1="118" y1="104" x2="198" y2="104" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="124" y="121" font-size="9.5">nome</text>
+<text class="diagram-label strong" x="256" y="18" font-size="11" text-anchor="middle">baralho[2]</text>
+<rect class="cell-box" x="216" y="26" width="80" height="104" rx="4"></rect>
+<text class="diagram-label" x="222" y="43" font-size="9.5">valor</text>
+<text class="cell-char" x="290" y="43" font-size="11" text-anchor="end">?</text>
+<line class="diagram-line" x1="216" y1="52" x2="296" y2="52" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="222" y="69" font-size="9.5">naipe</text>
+<line class="diagram-line" x1="216" y1="78" x2="296" y2="78" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="222" y="95" font-size="9.5">cor</text>
+<line class="diagram-line" x1="216" y1="104" x2="296" y2="104" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="222" y="121" font-size="9.5">nome</text>
+<text class="diagram-label" x="354" y="80" font-size="18" text-anchor="middle">…</text>
+<text class="diagram-label strong" x="452" y="18" font-size="11" text-anchor="middle">baralho[51]</text>
+<rect class="cell-box" x="412" y="26" width="80" height="104" rx="4"></rect>
+<text class="diagram-label" x="418" y="43" font-size="9.5">valor</text>
+<text class="cell-char" x="486" y="43" font-size="11" text-anchor="end">?</text>
+<line class="diagram-line" x1="412" y1="52" x2="492" y2="52" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="418" y="69" font-size="9.5">naipe</text>
+<line class="diagram-line" x1="412" y1="78" x2="492" y2="78" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="418" y="95" font-size="9.5">cor</text>
+<line class="diagram-line" x1="412" y1="104" x2="492" y2="104" stroke-dasharray="3 2"></line>
+<text class="diagram-label" x="418" y="121" font-size="9.5">nome</text>
+<text class="diagram-label" x="250" y="152" font-size="10.5" text-anchor="middle">cada posição do vetor é uma carta completa · <tspan fill="var(--accent-2)" font-weight="700">baralho[0].valor = 7;</tspan></text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 3.</strong> Em <code>struct carta baralho[52];</code> cada célula do vetor guarda uma struct inteira. O índice escolhe <em>qual</em> carta; o ponto escolhe <em>qual atributo</em> dela.</figcaption>
+      </figure>
+      <h3>Inicialização na declaração</h3>
+      <p>Como nos vetores, uma struct pode ser inicializada entre chaves, seguindo a <strong>ordem</strong> em que os atributos foram declarados:</p>
+<pre><code><span class="tok-kw">struct</span> carta carta2 = {7, <span class="tok-str">"copas"</span>, 'V', '7'};</code></pre>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="operador-ponto">
+      <h2>Acessando atributos: o operador ponto</h2>
+      <p>Para ler ou escrever um atributo usamos <code>variavel.atributo</code>:</p>
+<pre><code>carta1.valor = 14;
+strcpy(carta1.naipe, <span class="tok-str">"espadas"</span>);
+carta1.cor  = 'P';
+carta1.nome = 'A';
+
+baralho[0].valor = 7;</code></pre>
+      <ul>
+        <li><code>carta1.naipe</code> é uma <strong>string</strong>, então vale tudo da Unidade II: <strong>não</strong> podemos fazer <code>carta1.naipe = "espadas";</code>, é preciso <code>strcpy</code>.</li>
+        <li>Em <code>baralho[0].valor</code>, primeiro o índice seleciona a carta; depois o ponto seleciona o atributo.</li>
+      </ul>
+      <p>Cada atributo se comporta exatamente como uma variável comum do seu tipo, então funciona em <code>printf</code>, <code>scanf</code> e expressões:</p>
+<pre><code>printf(<span class="tok-str">"Carta: %c de %s (valor %d)\n"</span>, carta1.nome, carta1.naipe, carta1.valor);
+
+scanf(<span class="tok-str">"%d"</span>, &amp;carta1.valor);   <span class="tok-comment">// int: precisa do &amp;</span>
+scanf(<span class="tok-str">"%s"</span>, carta1.naipe);    <span class="tok-comment">// string: não precisa do &amp;</span></code></pre>
+      <h3>Atribuição entre structs</h3>
+      <p>Diferente dos vetores, structs <strong>podem</strong> ser copiadas inteiras com <code>=</code>: todos os atributos, inclusive vetores internos como <code>naipe</code>, são copiados.</p>
+<pre><code><span class="tok-kw">struct</span> carta copia;
+copia = carta1;   <span class="tok-comment">// copia valor, naipe, cor e nome</span></code></pre>
+      <p>Mas <strong>não</strong> é possível comparar structs com <code>==</code>: a comparação deve ser feita atributo por atributo (e o naipe, com <code>strcmp</code>).</p>
+      <div class="quiz" id="quiz-parte1">
+        <div class="quiz-header">
+          <p class="quiz-title">Verifique seu entendimento — Parte 1 — Registros (structs)</p>
+          <span class="quiz-score">0/4 respondidas · 0 corretas</span>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">1.</span> Qual das informações abaixo <strong>não</strong> precisa de uma struct para ser bem representada?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 1">
+            <button type="button" class="quiz-opt" data-correct="false">Um aluno (RA, nome, notas)</button>
+            <button type="button" class="quiz-opt" data-correct="true">A idade de uma pessoa</button>
+            <button type="button" class="quiz-opt" data-correct="false">Um ponto no plano cartesiano (x, y)</button>
+            <button type="button" class="quiz-opt" data-correct="false">Uma data (dia, mês, ano)</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="A idade é um único número inteiro, um int resolve. As demais são compostas por várias informações relacionadas, o caso típico de um registro."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">2.</span> Qual a principal diferença entre um <strong>vetor</strong> e uma <strong>struct</strong>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 2">
+            <button type="button" class="quiz-opt" data-correct="true">O vetor guarda elementos do mesmo tipo acessados por índice; a struct agrupa atributos, possivelmente de tipos diferentes, acessados por nome</button>
+            <button type="button" class="quiz-opt" data-correct="false">A struct só pode guardar números</button>
+            <button type="button" class="quiz-opt" data-correct="false">O vetor aceita tipos diferentes; a struct não</button>
+            <button type="button" class="quiz-opt" data-correct="false">Não há diferença, são dois nomes para a mesma coisa</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Vetor: n elementos do mesmo tipo, vetor[i]. Struct: atributos com nome próprio e tipos possivelmente diferentes, variavel.atributo."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">3.</span> Dada a declaração <code>struct carta c;</code>, qual comando está <strong>errado</strong>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 3">
+            <button type="button" class="quiz-opt" data-correct="false"><code>c.valor = 10;</code></button>
+            <button type="button" class="quiz-opt" data-correct="true"><code>c.naipe = "ouros";</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>c.cor = 'V';</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>strcpy(c.naipe, "paus");</code></button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="naipe é um vetor de char: não se atribui string com =, vale a regra da Unidade II. É preciso usar strcpy."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">4.</span> Como acessar o naipe da <strong>última</strong> carta de <code>struct carta baralho[52];</code>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 4">
+            <button type="button" class="quiz-opt" data-correct="false"><code>baralho.naipe[51]</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>baralho[52].naipe</code></button>
+            <button type="button" class="quiz-opt" data-correct="true"><code>baralho[51].naipe</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>naipe.baralho[51]</code></button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Primeiro o índice escolhe a carta (de 0 a 51, logo a última é 51), depois o ponto escolhe o atributo."></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="typedef">
+      <h2>Verboso, não? <code>typedef</code></h2>
+      <p>Ao referenciar uma struct há a necessidade de especificar o tipo <strong>completamente</strong>, sempre com a palavra <code>struct</code> na frente:</p>
+<pre><code><span class="tok-kw">struct</span> carta    c;
+<span class="tok-kw">struct</span> pixel    p;
+<span class="tok-kw">struct</span> complexo z;</code></pre>
+      <p>Verboso, não? Para isso existe o <code>typedef</code> (<em>type definition</em>, definição de tipo), que cria um <strong>apelido</strong> para um tipo já existente:</p>
+<pre><code><span class="tok-kw">typedef</span> tipagem apelido;</code></pre>
+      <p>Funciona com qualquer tipo, não apenas structs. O C clássico, por exemplo, não tem um tipo booleano, então podemos criar um nome mais expressivo:</p>
+<pre><code><span class="tok-kw">typedef</span> <span class="tok-kw">int</span> booleano;
+
+booleano achou = 0;   <span class="tok-comment">// para o compilador, continua sendo um int</span></code></pre>
+      <div class="callout">
+        <span class="callout-label">Convenção desta disciplina</span>
+        <p>Nome da struct em minúsculas (<code>carta</code>) e apelido do <code>typedef</code> com inicial maiúscula (<code>Carta</code>). Assim fica claro, só de olhar, quando estamos usando o apelido.</p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="tres-formas">
+      <h2>Três formas de usar <code>typedef</code> com struct</h2>
+      <h3>Opção 1: com a struct já declarada</h3>
+<pre><code><span class="tok-kw">struct</span> carta {
+    <span class="tok-kw">int</span>  valor;
+    <span class="tok-kw">char</span> naipe[10];
+    <span class="tok-kw">char</span> cor;
+    <span class="tok-kw">char</span> nome;
+};
+
+<span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> carta Carta;</code></pre>
+      <h3>Opção 2: criando a struct já tipada</h3>
+      <p>Declaração do tipo e apelido no mesmo comando:</p>
+<pre><code><span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> complexo {
+    <span class="tok-kw">float</span> real;
+    <span class="tok-kw">float</span> imag;
+} Complexo;</code></pre>
+      <h3>Opção 3: criando uma struct anônima</h3>
+      <p>A struct não tem nome; existe apenas o apelido:</p>
+<pre><code><span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> {
+    <span class="tok-kw">int</span>  valor;
+    <span class="tok-kw">char</span> naipe[10];
+    <span class="tok-kw">char</span> cor;
+    <span class="tok-kw">char</span> nome;
+} Carta;</code></pre>
+      <p>Em qualquer das três opções, daí em diante basta escrever:</p>
+<pre><code>Carta    c1;
+Carta    baralho[52];
+Complexo z;</code></pre>
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Opção 1</div>
+          <p>Útil quando a struct já existe no código e só queremos o apelido. Valem <code>struct carta</code> e <code>Carta</code>.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Opção 2</div>
+          <p>Tudo em um lugar. Valem <code>struct complexo</code> e <code>Complexo</code>.</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Opção 3</div>
+          <p>Mais enxuta. Vale <strong>só</strong> <code>Carta</code>; <code>struct carta</code> não existe.</p>
+        </div>
+      </div>
+      <div class="quiz" id="quiz-parte2">
+        <div class="quiz-header">
+          <p class="quiz-title">Verifique seu entendimento — Parte 2 — typedef</p>
+          <span class="quiz-score">0/3 respondidas · 0 corretas</span>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">1.</span> O que faz <code>typedef int booleano;</code>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 1">
+            <button type="button" class="quiz-opt" data-correct="false">Cria um novo tipo que só aceita 0 e 1</button>
+            <button type="button" class="quiz-opt" data-correct="true">Cria um apelido <code>booleano</code> para o tipo <code>int</code></button>
+            <button type="button" class="quiz-opt" data-correct="false">Declara uma variável chamada <code>booleano</code></button>
+            <button type="button" class="quiz-opt" data-correct="false">Converte todos os <code>int</code> do programa em <code>booleano</code></button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="typedef não cria tipos novos nem restringe valores: apenas dá outro nome a um tipo existente. booleano continua sendo um int."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">2.</span> Após <code>typedef struct complexo { float real; float imag; } Complexo;</code>, quais declarações são válidas?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 2">
+            <button type="button" class="quiz-opt" data-correct="false">Apenas <code>Complexo z;</code></button>
+            <button type="button" class="quiz-opt" data-correct="false">Apenas <code>struct complexo z;</code></button>
+            <button type="button" class="quiz-opt" data-correct="true">Tanto <code>Complexo z;</code> quanto <code>struct complexo z;</code></button>
+            <button type="button" class="quiz-opt" data-correct="false">Nenhuma das duas</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Na Opção 2 a struct tem nome (complexo) e ganha um apelido (Complexo); as duas formas se referem ao mesmo tipo."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">3.</span> Com a <strong>struct anônima</strong> <code>typedef struct { ... } Carta;</code>, qual declaração <strong>não</strong> compila?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 3">
+            <button type="button" class="quiz-opt" data-correct="false"><code>Carta c1;</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>Carta baralho[52];</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>Carta *cp;</code></button>
+            <button type="button" class="quiz-opt" data-correct="true"><code>struct carta c1;</code></button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="A struct anônima não tem nome, só o apelido Carta. Escrever struct carta se refere a um tipo que nunca foi definido."></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="ponteiro-struct">
+      <h2>Ponteiro de struct: <code>(*cp).valor</code> ≡ <code>cp-&gt;valor</code></h2>
+      <p>Tudo o que vimos na Unidade IV vale também para structs. Um ponteiro de struct guarda o <strong>endereço</strong> de uma variável struct:</p>
+<pre><code>Carta c1;
+Carta baralho[52];
+Carta *cp;
+
+c1.valor = 14;
+strcpy(c1.naipe, <span class="tok-str">"espadas"</span>);
+c1.cor  = 'P';
+c1.nome = 'A';
+
+cp = &amp;c1;          <span class="tok-comment">// cp aponta para c1</span></code></pre>
+      <p>Para acessar um atributo <strong>através do ponteiro</strong> há duas escritas equivalentes:</p>
+      <div class="code-compare">
+        <div>
+          <span class="panel-label">desreferencia, depois acessa</span>
+<pre><code>(*cp).valor = 1;</code></pre>
+        </div>
+        <div>
+          <span class="panel-label good">operador seta</span>
+<pre><code>cp-&gt;valor = 1;</code></pre>
+        </div>
+      </div>
+      <p style="margin-top: 1.3rem">As duas linhas fazem exatamente a mesma coisa. Veja o que acontece na memória, passo a passo:</p>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 470 150" role="img" aria-label="O ponteiro cp guarda o endereço de c1; tanto (*cp).valor quanto cp-&gt;valor alteram o atributo valor de c1 de 14 para 1">
+<defs><marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="diagram-tri" d="M0,0 L10,5 L0,10 z"></path></marker></defs>
+<text class="diagram-label strong" x="70" y="16" font-size="11" text-anchor="middle">cp  (Carta *)</text>
+<rect class="chip-box" x="20" y="24" width="100" height="40" rx="5"></rect>
+<text class="chip-text" x="70" y="49" font-size="12" text-anchor="middle">&amp;c1</text>
+<path class="diagram-line" d="M120,44 L246,44" marker-end="url(#seta)"></path>
+<text class="diagram-label" x="183" y="38" font-size="9.5" text-anchor="middle">cp = &amp;c1;</text>
+<rect class="cell-box chip-active" x="250" y="22" width="200" height="122" rx="5"></rect>
+<line class="diagram-line" x1="250" y1="48" x2="450" y2="48"></line>
+<text class="code-label" x="350.0" y="39" font-size="12" text-anchor="middle">c1  (Carta)</text>
+<line x1="260" y1="55" x2="260" y2="137" stroke="var(--accent-2)" stroke-width="2.5"></line>
+<text class="diagram-label" x="270" y="66" font-size="11">valor</text>
+<text class="cell-char" x="440" y="66" font-size="11" text-anchor="end">14 → 1</text>
+<text class="diagram-label" x="270" y="88" font-size="11">naipe</text>
+<text class="cell-char" x="440" y="88" font-size="11" text-anchor="end">"espadas"</text>
+<text class="diagram-label" x="270" y="110" font-size="11">cor</text>
+<text class="cell-char" x="440" y="110" font-size="11" text-anchor="end">'P'</text>
+<text class="diagram-label" x="270" y="132" font-size="11">nome</text>
+<text class="cell-char" x="440" y="132" font-size="11" text-anchor="end">'A'</text>
+<path class="diagram-line" d="M120,66 C170,90 200,66 246,66" marker-end="url(#seta)" stroke-dasharray="4 3"></path>
+<text class="diagram-label strong" x="70" y="96" font-size="11" text-anchor="middle">(*cp).valor = 1;</text>
+<text class="diagram-label" x="70" y="114" font-size="11" text-anchor="middle">≡</text>
+<text class="diagram-label strong" x="70" y="132" font-size="11" text-anchor="middle">cp-&gt;valor = 1;</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 4.</strong> <code>cp</code> não guarda uma carta, guarda o <em>endereço</em> de uma. As duas escritas da lousa, <code>(*cp).valor</code> e <code>cp-&gt;valor</code>, chegam ao mesmo lugar: o atributo <code>valor</code> de <code>c1</code>.</figcaption>
+      </figure>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead>
+            <tr><th>Passo</th><th>Instrução</th><th>c1.valor</th><th>cp</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="trace-step">1</td><td class="trace-desc"><code>Carta c1; Carta *cp;</code></td><td class="trace-gone">lixo</td><td class="trace-gone">lixo</td></tr>
+            <tr><td class="trace-step">2</td><td class="trace-desc"><code>c1.valor = 14;</code> (e os demais atributos)</td><td class="trace-changed">14</td><td class="trace-gone">lixo</td></tr>
+            <tr><td class="trace-step">3</td><td class="trace-desc"><code>cp = &amp;c1;</code></td><td>14</td><td class="trace-changed">&amp;c1</td></tr>
+            <tr><td class="trace-step">4</td><td class="trace-desc"><code>(*cp).valor = 1;</code></td><td class="trace-changed">1</td><td>&amp;c1</td></tr>
+            <tr><td class="trace-step">5</td><td class="trace-desc"><code>cp-&gt;valor = 1;</code> (mesmo efeito, escrita abreviada)</td><td>1</td><td>&amp;c1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Por que os parênteses?</span>
+        <p>O operador <code>.</code> tem precedência <strong>maior</strong> que o <code>*</code>. Sem parênteses, <code>*cp.valor</code> é lido como <code>*(cp.valor)</code>, e <code>cp</code> é um ponteiro, não uma struct: erro de compilação. A seta <code>-&gt;</code> existe justamente para evitar essa escrita carregada.</p>
+      </div>
+      <p>Regra prática: <strong>variável struct → <code>.</code></strong> · <strong>ponteiro para struct → <code>-&gt;</code></strong>.</p>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="structs-funcoes">
+      <h2>Structs e funções</h2>
+      <p>Uma struct passada para uma função é passada <strong>por valor</strong>: a função recebe uma cópia, como acontece com um <code>int</code>. Para que a função <strong>altere</strong> a struct original, passamos o seu endereço, a mesma passagem por referência da Unidade III, agora usando a seta:</p>
+<pre><code><span class="tok-kw">void</span> imprime_carta(Carta c) {          <span class="tok-comment">// por valor: só lê</span>
+    printf(<span class="tok-str">"%c de %s (%c) - valor %d\n"</span>, c.nome, c.naipe, c.cor, c.valor);
+}
+
+<span class="tok-kw">void</span> zera_valor(Carta *cp) {           <span class="tok-comment">// por referência: altera</span>
+    cp-&gt;valor = 0;
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    Carta c1 = {14, <span class="tok-str">"espadas"</span>, 'P', 'A'};
+
+    imprime_carta(c1);
+    zera_valor(&amp;c1);
+    printf(<span class="tok-str">"%d\n"</span>, c1.valor);    <span class="tok-comment">// 0</span>
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <h3>De volta aos números complexos</h3>
+      <p>Lembra da problemática do início? Uma função só retorna um valor, mas esse valor <strong>pode ser uma struct</strong>, carregando as duas partes de uma vez:</p>
+<pre><code>Complexo soma(Complexo a, Complexo b) {
+    Complexo r;
+    r.real = a.real + b.real;
+    r.imag = a.imag + b.imag;
+    <span class="tok-kw">return</span> r;
+}
+
+<span class="tok-comment">// uso</span>
+Complexo z1 = {3.0, 2.0}, z2 = {1.5, -4.0};
+Complexo z  = soma(z1, z2);     <span class="tok-comment">// 4.5 - 2.0i</span></code></pre>
+      <div class="quiz" id="quiz-parte3">
+        <div class="quiz-header">
+          <p class="quiz-title">Verifique seu entendimento — Parte 3 — Ponteiro de struct</p>
+          <span class="quiz-score">0/4 respondidas · 0 corretas</span>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">1.</span> Sendo <code>Carta *cp = &amp;c1;</code>, qual expressão <strong>não</strong> acessa o valor de <code>c1</code>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 1">
+            <button type="button" class="quiz-opt" data-correct="false"><code>c1.valor</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>(*cp).valor</code></button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>cp-&gt;valor</code></button>
+            <button type="button" class="quiz-opt" data-correct="true"><code>*cp.valor</code></button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="O ponto tem precedência maior que o *, então *cp.valor vira *(cp.valor), e cp é um ponteiro, não uma struct: não compila. Daí os parênteses (ou a seta)."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">2.</span> Quando usar <code>.</code> e quando usar <code>-&gt;</code>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 2">
+            <button type="button" class="quiz-opt" data-correct="false"><code>.</code> em vetores e <code>-&gt;</code> em structs</button>
+            <button type="button" class="quiz-opt" data-correct="true"><code>.</code> com uma variável struct; <code>-&gt;</code> com um ponteiro para struct</button>
+            <button type="button" class="quiz-opt" data-correct="false">São intercambiáveis em qualquer situação</button>
+            <button type="button" class="quiz-opt" data-correct="false"><code>-&gt;</code> só pode ser usado dentro de funções</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Regra prática: tenho a struct em mãos, uso ponto; tenho o endereço dela, uso seta. cp-&gt;valor é só a forma curta de (*cp).valor."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">3.</span> Por que <code>void zera_valor(Carta *cp)</code> recebe um ponteiro e não uma <code>Carta</code>?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 3">
+            <button type="button" class="quiz-opt" data-correct="false">Porque structs não podem ser parâmetros de função</button>
+            <button type="button" class="quiz-opt" data-correct="true">Porque, recebendo uma cópia, a alteração não chegaria à variável original</button>
+            <button type="button" class="quiz-opt" data-correct="false">Porque o operador ponto não funciona dentro de funções</button>
+            <button type="button" class="quiz-opt" data-correct="false">Porque ponteiros são obrigatórios para ler atributos</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Structs são passadas por valor (cópia), como um int. Para alterar a original é preciso passar o endereço, a mesma ideia da passagem por referência da Unidade III."></p>
+        </div>
+
+        <div class="quiz-q">
+          <p class="quiz-question"><span class="quiz-num">4.</span> Como a função <code>Complexo soma(Complexo a, Complexo b)</code> resolve a problemática dos números complexos?</p>
+          <div class="quiz-options" role="group" aria-label="Alternativas da pergunta 4">
+            <button type="button" class="quiz-opt" data-correct="false">Ela retorna dois valores separados</button>
+            <button type="button" class="quiz-opt" data-correct="true">Ela devolve uma única struct que contém as duas partes, real e imaginária</button>
+            <button type="button" class="quiz-opt" data-correct="false">Ela altera variáveis globais</button>
+            <button type="button" class="quiz-opt" data-correct="false">Ela não resolve: funções em C não podem retornar structs</button>
+          </div>
+          <p class="quiz-feedback" hidden data-explain="Uma função retorna um único valor, mas esse valor pode ser uma struct inteira, carregando real e imag juntos."></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="chapter" id="exercicios">
+      <h2>Exercícios de laboratório</h2>
+      <p>Resolva em ordem: cada exercício reaproveita o tipo ou a ideia do anterior. Compile sempre com <code>gcc -Wall</code>.</p>
+      <h3>1. Números complexos</h3>
+      <p>Declare o tipo <code>Complexo</code> e escreva <code>Complexo soma(Complexo a, Complexo b)</code>, <code>Complexo multiplica(Complexo a, Complexo b)</code> e <code>void imprime(Complexo z)</code> (formato <code>3.0 + 2.0i</code>). Leia dois complexos e mostre a soma e o produto.</p>
+      <p><em>Lembrete:</em> (a + bi)(c + di) = (ac − bd) + (ad + bc)i.</p>
+      <h3>2. Pixel</h3>
+      <p>Declare <code>Pixel</code> com <code>red</code>, <code>green</code>, <code>blue</code> e <code>alpha</code> do tipo <code>unsigned char</code> (0 a 255). Crie <code>Pixel img[64][64];</code>, preencha todos os pixels com uma cor lida do teclado e escreva <code>void converte_cinza(Pixel *p)</code>, que faz <code>cinza = (red + green + blue) / 3</code> nos três canais. Aplique em toda a imagem e imprima <code>sizeof(Pixel)</code> e <code>sizeof(img)</code>: compare com as 16384 variáveis da problemática.</p>
+<pre><code><span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> {
+    <span class="tok-kw">unsigned</span> <span class="tok-kw">char</span> red, green, blue, alpha;
+} Pixel;
+
+<span class="tok-kw">void</span> converte_cinza(Pixel *p) {
+    <span class="tok-comment">// complete usando p-&gt;red, p-&gt;green, p-&gt;blue</span>
+}</code></pre>
+      <h3>3. Baralho</h3>
+      <p>Usando <code>Carta</code>, escreva <code>void monta_baralho(Carta baralho[52])</code> que preencha as 52 cartas: 4 naipes × 13 valores de 2 a 14 (11 = J, 12 = Q, 13 = K, 14 = A). Copas e ouros são vermelhas (<code>'V'</code>); espadas e paus, pretas (<code>'P'</code>). Imprima o baralho com <code>imprime_carta</code>.</p>
+      <h3>4. Maior carta</h3>
+      <p>Escreva <code>Carta *maior_carta(Carta mao[], int n)</code>, que devolve um <strong>ponteiro</strong> para a carta de maior valor de uma mão com <code>n</code> cartas. No <code>main</code>, sorteie 5 cartas do baralho com <code>rand</code> e mostre a maior usando o operador <code>-&gt;</code>.</p>
+      <h3>5. Desafio: cadastro de alunos</h3>
+      <p>Crie o tipo <code>Aluno</code> com RA (<code>int</code>), nome (string) e um vetor de 3 notas. Leia <code>n</code> alunos em um vetor alocado com <code>malloc</code> (Unidade IV), calcule a média de cada um com uma função que recebe <code>const Aluno *</code> e imprima os aprovados (média ≥ 6). Não esqueça o <code>free</code>.</p>
+      <h3>Resumo da unidade</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Conceito</th><th>Sintaxe</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Definir o tipo</td><td><code>struct carta { int valor; char naipe[10]; };</code></td></tr>
+            <tr><td class="trace-desc">Declarar variável</td><td><code>struct carta c;</code> ou <code>Carta c;</code></td></tr>
+            <tr><td class="trace-desc">Vetor de structs</td><td><code>Carta baralho[52];</code></td></tr>
+            <tr><td class="trace-desc">Acessar atributo</td><td><code>c.valor</code>, <code>baralho[0].valor</code></td></tr>
+            <tr><td class="trace-desc">Atributo string</td><td><code>strcpy(c.naipe, "espadas");</code></td></tr>
+            <tr><td class="trace-desc">Apelido de tipo</td><td><code>typedef struct carta Carta;</code></td></tr>
+            <tr><td class="trace-desc">Ponteiro de struct</td><td><code>Carta *cp = &amp;c;</code></td></tr>
+            <tr><td class="trace-desc">Acesso via ponteiro</td><td><code>(*cp).valor</code> ≡ <code>cp-&gt;valor</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade V — Structs em C · Laboratório de Técnicas de Programação</p>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.quiz').forEach(function (quiz) {
+    var total = quiz.querySelectorAll('.quiz-q').length;
+    var scoreEl = quiz.querySelector('.quiz-score');
+    var answered = 0;
+    var correctCount = 0;
+
+    function updateScore() {
+      if (scoreEl) {
+        scoreEl.textContent = answered + '/' + total + ' respondidas · ' + correctCount + ' corretas';
+      }
+    }
+
+    quiz.querySelectorAll('.quiz-q').forEach(function (q) {
+      var opts = q.querySelectorAll('.quiz-opt');
+      var feedback = q.querySelector('.quiz-feedback');
+      var locked = false;
+
+      opts.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (locked) return;
+          locked = true;
+          answered++;
+
+          var isCorrect = btn.dataset.correct === 'true';
+          if (isCorrect) correctCount++;
+
+          opts.forEach(function (b) {
+            b.disabled = true;
+            if (b.dataset.correct === 'true') b.classList.add('quiz-correct');
+          });
+          if (!isCorrect) btn.classList.add('quiz-wrong');
+
+          feedback.hidden = false;
+          feedback.textContent = (isCorrect ? '✓ Correto — ' : '✗ Quase — ') + feedback.dataset.explain;
+          feedback.classList.add(isCorrect ? 'feedback-correct' : 'feedback-wrong');
+
+          updateScore();
+        });
+      });
+    });
+
+    updateScore();
+  });
+</script>
+
+</body>
+</html>
