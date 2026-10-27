@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Arquivos em C — Unidade VI (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .call-strip span.fn {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.7rem 0 0.15rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  .code-compare {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  .code-compare .panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .code-compare .panel-label.bad { color: var(--bad); }
+  .code-compare .panel-label.good { color: var(--good); }
+  .code-compare pre { margin-bottom: 0; height: 100%; }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards used as exercise cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+
+  /* ---------- Trace table (step-by-step simulation) ---------- */
+
+  .trace-wrap {
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    break-inside: avoid;
+  }
+  .trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--surface);
+  }
+  .trace-table th, .trace-table td {
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .trace-table thead th {
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .trace-table td.trace-desc {
+    white-space: normal;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    min-width: 190px;
+  }
+  .trace-table tr:last-child td { border-bottom: none; }
+  .trace-step { color: var(--accent-2); font-weight: 700; }
+  .trace-changed { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  .trace-gone { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+
+  @media (max-width: 560px) {
+    .type-cards { grid-template-columns: 1fr; }
+    .code-compare { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade VI · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Arquivos em C<br><span class="dim">modo texto, modo binário e acesso aleatório</span></h1>
+    <p class="subtitle">Tudo o que nossos programas guardaram até agora desaparece quando eles terminam. Nesta unidade vamos gravar e ler dados na memória secundária usando arquivos: primeiro em modo texto, legível e compatível com planilhas (CSV), depois em modo binário, em que uma struct inteira vai para o disco com um único comando e podemos saltar direto para o registro que quisermos com <code>fseek</code>.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">FILE *arq</span>
+      <span class="arrow">→</span>
+      <span class="fn">fopen(…, "r")</span>
+      <span class="arrow">→</span>
+      <span class="fn">fscanf / fread</span>
+      <span class="arrow">→</span>
+      <span class="fn">fclose(arq)</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li class="toc-group" role="presentation">Parte 1 — Por que arquivos</li>
+      <li><a href="#o-que-e"><span class="num">01</span> Memória volátil e o que é um arquivo</a></li>
+      <li><a href="#problematica"><span class="num">02</span> A problemática e o armazenamento físico</a></li>
+
+      <li class="toc-group" role="presentation">Parte 2 — Abrindo e fechando</li>
+      <li><a href="#ciclo"><span class="num">03</span> O tipo <code>FILE</code> e o ciclo de vida</a></li>
+      <li><a href="#fopen"><span class="num">04</span> <code>fopen</code>, modos de abertura e <code>fclose</code></a></li>
+
+      <li class="toc-group" role="presentation">Parte 3 — Modo texto</li>
+      <li><a href="#funcoes-texto"><span class="num">05</span> As "primas" de <code>printf</code> e <code>scanf</code></a></li>
+      <li><a href="#escrita-texto"><span class="num">06</span> Escrevendo: <code>fprintf</code> e o modo <code>"a"</code></a></li>
+      <li><a href="#leitura-texto"><span class="num">07</span> Lendo: <code>fgetc</code>, <code>fgets</code> e <code>fscanf</code></a></li>
+      <li><a href="#csv"><span class="num">08</span> Arquivos CSV + structs</a></li>
+
+      <li class="toc-group" role="presentation">Parte 4 — Modo binário</li>
+      <li><a href="#binario"><span class="num">09</span> <code>fwrite</code>, <code>fread</code> e o cadastro persistente</a></li>
+      <li><a href="#fseek"><span class="num">10</span> Acesso aleatório: <code>fseek</code>, <code>ftell</code> e <code>rewind</code></a></li>
+      <li><a href="#comparacao"><span class="num">11</span> Texto × binário</a></li>
+
+      <li class="toc-group" role="presentation">Parte 5 (lab) — Prática</li>
+      <li><a href="#exercicios"><span class="num">12</span> Exercícios de laboratório</a></li>
+      <li><a href="#gabarito"><span class="num">13</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="o-que-e">
+      <h2>Memória volátil e o que é um arquivo</h2>
+      <p>Todos os programas que escrevemos até agora têm algo em comum: <strong>quando o programa termina, os dados desaparecem</strong>. Variáveis, vetores, structs e até a memória obtida com <code>malloc</code> vivem na <strong>memória principal</strong> (RAM), que é <strong>volátil</strong>: só guarda informação enquanto o programa está em execução.</p>
+      <p>Para que uma informação sobreviva ao fim do programa, ela precisa ir para a <strong>memória secundária</strong> (SSD, disco rígido, pen drive), que é <strong>não volátil</strong>. A forma de organizar dados ali é o <strong>arquivo</strong>.</p>
+      <blockquote><p><strong>Arquivo:</strong> conjunto de dados armazenado em memória secundária, identificado por um <strong>nome</strong>, que persiste independentemente da execução do programa que o criou.</p></blockquote>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th></th><th>Memória principal (RAM)</th><th>Memória secundária (SSD/HD)</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Volátil?</td><td>Sim</td><td>Não</td></tr>
+            <tr><td class="trace-desc">Velocidade</td><td>Muito rápida</td><td>Bem mais lenta</td></tr>
+            <tr><td class="trace-desc">Capacidade</td><td>Menor (GB)</td><td>Maior (centenas de GB, TB)</td></tr>
+            <tr><td class="trace-desc">Em C, acessamos por</td><td>variáveis, ponteiros</td><td>arquivos (<code>FILE *</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="problematica">
+      <h2>A problemática e o armazenamento físico</h2>
+      <h3>O cadastro que some</h3>
+      <p>Na Unidade V construímos um cadastro de alunos com structs. Funciona bem… até fecharmos o programa. Na próxima execução o vetor está vazio e o usuário precisa digitar <strong>tudo de novo</strong>.</p>
+      <h3>Dados que vêm de fora</h3>
+      <p>Muitas vezes os dados <strong>já existem</strong> e foram produzidos por outro programa: uma planilha exportada em CSV, o log de um servidor, os resultados de um campeonato, as leituras de um sensor. Digitá-los no teclado não é opção: o programa precisa <strong>ler o arquivo</strong>.</p>
+      <h3>Princípios do armazenamento físico</h3>
+      <p>Para o sistema operacional, um arquivo é apenas uma <strong>sequência de bytes</strong>. O que esses bytes <em>significam</em> depende de como foram gravados:</p>
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Arquivo texto</div>
+          <p>Os bytes são <strong>caracteres</strong> legíveis (ASCII/UTF-8), organizados em <strong>linhas</strong> terminadas por <code>'\n'</code>. Abre em qualquer editor.</p>
+          <p class="example">.txt · .csv · .c · .html</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Arquivo binário</div>
+          <p>Os bytes são uma <strong>cópia direta da memória</strong>: o mesmo padrão de bits que a variável tem na RAM. Não é legível em um editor de texto.</p>
+          <p class="example">.exe · .png · .mp3 · .dat</p>
+        </div>
+      </div>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 560 200" role="img" aria-label="O inteiro 1234 em modo texto ocupa 4 bytes, um por dígito: 0x31 0x32 0x33 0x34. Em modo binário ocupa 4 bytes, sizeof(int): D2 04 00 00. O inteiro 1234567890 ocuparia 10 bytes em texto e continuaria com 4 em binário.">
+<text class="diagram-label strong" x="280" y="16" font-size="11" text-anchor="middle">o inteiro 1234 gravado de duas formas</text>
+<text class="code-label" x="12" y="62" font-size="12">texto</text>
+<rect class="cell-box" x="100" y="34" width="52" height="46" rx="4"></rect>
+<text class="cell-char" x="126" y="55" font-size="14" text-anchor="middle">'1'</text>
+<text class="cell-index" x="126" y="72" font-size="9.5" text-anchor="middle">0x31</text>
+<rect class="cell-box" x="156" y="34" width="52" height="46" rx="4"></rect>
+<text class="cell-char" x="182" y="55" font-size="14" text-anchor="middle">'2'</text>
+<text class="cell-index" x="182" y="72" font-size="9.5" text-anchor="middle">0x32</text>
+<rect class="cell-box" x="212" y="34" width="52" height="46" rx="4"></rect>
+<text class="cell-char" x="238" y="55" font-size="14" text-anchor="middle">'3'</text>
+<text class="cell-index" x="238" y="72" font-size="9.5" text-anchor="middle">0x33</text>
+<rect class="cell-box" x="268" y="34" width="52" height="46" rx="4"></rect>
+<text class="cell-char" x="294" y="55" font-size="14" text-anchor="middle">'4'</text>
+<text class="cell-index" x="294" y="72" font-size="9.5" text-anchor="middle">0x34</text>
+<text class="diagram-label" x="340" y="54" font-size="11">4 bytes, um por dígito</text>
+<text class="diagram-label" x="340" y="70" font-size="11">legível no Bloco de Notas</text>
+<text class="code-label" x="12" y="134" font-size="12">binário</text>
+<rect class="cell-null" x="100" y="110" width="52" height="40" rx="4"></rect>
+<text class="cell-null-text" x="126" y="135" font-size="13" text-anchor="middle">D2</text>
+<rect class="cell-null" x="156" y="110" width="52" height="40" rx="4"></rect>
+<text class="cell-null-text" x="182" y="135" font-size="13" text-anchor="middle">04</text>
+<rect class="cell-null" x="212" y="110" width="52" height="40" rx="4"></rect>
+<text class="cell-null-text" x="238" y="135" font-size="13" text-anchor="middle">00</text>
+<rect class="cell-null" x="268" y="110" width="52" height="40" rx="4"></rect>
+<text class="cell-null-text" x="294" y="135" font-size="13" text-anchor="middle">00</text>
+<text class="diagram-label" x="340" y="126" font-size="11">4 bytes = sizeof(int)</text>
+<text class="diagram-label" x="340" y="142" font-size="11">cópia da RAM (little-endian)</text>
+<text class="diagram-label strong" x="280" y="186" font-size="11" text-anchor="middle">1234567890: 10 bytes em texto · continua com 4 bytes em binário</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> Em texto, cada dígito vira um caractere, então o tamanho depende do número. Em binário, todo <code>int</code> ocupa exatamente <code>sizeof(int)</code> bytes (1234 = <code>0x000004D2</code>, gravado do byte menos significativo para o mais significativo). Esse tamanho fixo é o que vai permitir <strong>pular direto</strong> para o registro de número <code>k</code>.</figcaption>
+      </figure>
+      <div class="quiz-print" id="quiz-parte1">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 1 — Por que arquivos <span>— confira as respostas no Gabarito, seção 13</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Por que os dados de um vetor se perdem quando o programa termina?</p>
+            <ol class="qp-options">
+              <li>Porque o compilador apaga os vetores</li>
+              <li>Porque eles estão na memória principal, que é volátil</li>
+              <li>Porque vetores só guardam valores temporários</li>
+              <li>Porque faltou usar <code>free</code></li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual das afirmações sobre arquivos <strong>texto</strong> é correta?</p>
+            <ol class="qp-options">
+              <li>Guardam uma cópia exata dos bytes da memória</li>
+              <li>Não podem ser abertos em editores comuns</li>
+              <li>Guardam caracteres legíveis, organizados em linhas</li>
+              <li>Todo número ocupa sempre 4 bytes</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="ciclo">
+      <h2>O tipo <code>FILE</code> e o ciclo de vida</h2>
+      <p>As funções de arquivo estão em <code>&lt;stdio.h&gt;</code>, a mesma biblioteca do <code>printf</code> e do <code>scanf</code>. Um arquivo aberto é representado por um <strong>ponteiro</strong> para o tipo <code>FILE</code>:</p>
+<pre><code>FILE *arq;</code></pre>
+      <p><code>FILE</code> é uma struct definida pela biblioteca que guarda o estado do arquivo aberto: a posição atual, o buffer, os indicadores de erro e de fim de arquivo. Nunca acessamos seus atributos diretamente; apenas passamos o ponteiro para as funções.</p>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 560 160" role="img" aria-label="Ciclo de vida de um arquivo: 1 abrir com fopen, 2 verificar se é NULL, 3 usar lendo ou escrevendo, 4 fechar com fclose. Se for NULL, mostrar erro e encerrar.">
+<rect class="chip-box" x="10" y="30" width="118" height="56" rx="6"></rect>
+<text class="chip-text" x="69" y="54" font-size="12" text-anchor="middle">fopen</text>
+<text class="diagram-label" x="69" y="73" font-size="10" text-anchor="middle">1. abrir</text>
+<line class="diagram-line" x1="128" y1="58" x2="142" y2="58"></line>
+<polygon class="diagram-tri" points="148,58 141,54 141,62"></polygon>
+<rect class="chip-box chip-active" x="150" y="30" width="118" height="56" rx="6"></rect>
+<text class="chip-text" x="209" y="54" font-size="12" text-anchor="middle">== NULL ?</text>
+<text class="diagram-label" x="209" y="73" font-size="10" text-anchor="middle">2. verificar</text>
+<line class="diagram-line" x1="268" y1="58" x2="282" y2="58"></line>
+<polygon class="diagram-tri" points="288,58 281,54 281,62"></polygon>
+<rect class="chip-box" x="290" y="30" width="118" height="56" rx="6"></rect>
+<text class="chip-text" x="349" y="54" font-size="11" text-anchor="middle">ler / escrever</text>
+<text class="diagram-label" x="349" y="73" font-size="10" text-anchor="middle">3. usar</text>
+<line class="diagram-line" x1="408" y1="58" x2="422" y2="58"></line>
+<polygon class="diagram-tri" points="428,58 421,54 421,62"></polygon>
+<rect class="cell-null" x="430" y="30" width="118" height="56" rx="6"></rect>
+<text class="cell-null-text" x="489" y="54" font-size="12" text-anchor="middle">fclose</text>
+<text class="cell-null-text" x="489" y="73" font-size="10" text-anchor="middle">4. fechar</text>
+<line class="diagram-line" x1="209" y1="86" x2="209" y2="112"></line>
+<polygon class="diagram-tri" points="209,118 205,111 213,111"></polygon>
+<text class="diagram-label strong" x="209" y="136" font-size="11" text-anchor="middle">sim: mensagem de erro e return 1</text>
+<text class="diagram-label" x="278" y="20" font-size="10" text-anchor="middle">não</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> Todo uso de arquivo segue os mesmos quatro passos. O passo 2 é o mais esquecido: o arquivo pode não existir, estar em outra pasta ou não ter permissão de acesso.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="fopen">
+      <h2><code>fopen</code>, modos de abertura e <code>fclose</code></h2>
+<pre><code>FILE *fopen(<span class="tok-kw">const</span> <span class="tok-kw">char</span> *nome_arquivo, <span class="tok-kw">const</span> <span class="tok-kw">char</span> *modo);</code></pre>
+      <ul>
+        <li><code>nome_arquivo</code>: o caminho do arquivo. Se for só o nome (<code>"alunos.txt"</code>), ele é procurado na <strong>pasta onde o programa está sendo executado</strong>.</li>
+        <li><code>modo</code>: string que diz <strong>o que</strong> pretendemos fazer com o arquivo.</li>
+        <li>Retorna um ponteiro para <code>FILE</code> ou <strong><code>NULL</code></strong> se não conseguir abrir.</li>
+      </ul>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Modo</th><th>Significado</th><th>Se o arquivo existe</th><th>Se não existe</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-step">"r"</td><td>leitura (<em>read</em>)</td><td>lê desde o início</td><td>retorna <code>NULL</code></td></tr>
+            <tr><td class="trace-step">"w"</td><td>escrita (<em>write</em>)</td><td class="trace-changed">apaga todo o conteúdo</td><td>cria</td></tr>
+            <tr><td class="trace-step">"a"</td><td>acréscimo (<em>append</em>)</td><td>escreve no final</td><td>cria</td></tr>
+            <tr><td class="trace-step">"r+"</td><td>leitura e escrita</td><td>lê/escreve desde o início</td><td>retorna <code>NULL</code></td></tr>
+            <tr><td class="trace-step">"w+"</td><td>leitura e escrita</td><td class="trace-changed">apaga todo o conteúdo</td><td>cria</td></tr>
+            <tr><td class="trace-step">"a+"</td><td>leitura e acréscimo</td><td>lê de qualquer ponto, escreve no final</td><td>cria</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Acrescentando a letra <strong><code>b</code></strong> ao modo (<code>"rb"</code>, <code>"wb"</code>, <code>"ab"</code>, <code>"r+b"</code>…) o arquivo é aberto em <strong>modo binário</strong>. Sem o <code>b</code>, em <strong>modo texto</strong>.</p>
+      <div class="callout">
+        <span class="callout-label">Cuidado com o "w"</span>
+        <p>Abrir um arquivo existente em modo <code>"w"</code> <strong>destrói</strong> o conteúdo anterior, sem perguntar. Para adicionar dados a um arquivo, use <code>"a"</code>.</p>
+      </div>
+      <h3>Verificando e fechando</h3>
+<pre><code>#include &lt;stdio.h&gt;
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    FILE *arq = fopen(<span class="tok-str">"dados.txt"</span>, <span class="tok-str">"r"</span>);
+
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Erro ao abrir o arquivo!\n"</span>);
+        <span class="tok-kw">return</span> 1;
+    }
+
+    <span class="tok-comment">// ... usa o arquivo ...</span>
+
+    fclose(arq);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <ul>
+        <li><strong>Sempre</strong> teste o retorno do <code>fopen</code>. Usar um <code>FILE *</code> nulo trava o programa, exatamente como desreferenciar um ponteiro <code>NULL</code> (Unidade IV).</li>
+        <li><code>fclose</code> <strong>descarrega o buffer</strong> (as escritas ficam acumuladas na memória e vão para o disco em blocos) e libera o arquivo. Esquecer o <code>fclose</code> pode fazer com que <strong>parte dos dados nunca seja gravada</strong>.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">Dica: Dev-C++ e Code::Blocks</span>
+        <p>Se o <code>fopen</code> retorna <code>NULL</code> para um arquivo que "está ali", confira se ele está na <strong>mesma pasta do executável</strong> (no Code::Blocks, na pasta do projeto).</p>
+      </div>
+      <div class="quiz-print" id="quiz-parte2">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 2 — Abrindo e fechando <span>— confira as respostas no Gabarito, seção 13</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Um programa abre <code>"notas.txt"</code> com modo <code>"w"</code>, mas o arquivo já tinha 30 linhas. O que acontece?</p>
+            <ol class="qp-options">
+              <li>As novas linhas são escritas depois das 30 existentes</li>
+              <li>O <code>fopen</code> retorna <code>NULL</code></li>
+              <li>O conteúdo anterior é apagado</li>
+              <li>O programa pergunta se deve sobrescrever</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual modo usar para <strong>ler</strong> um arquivo binário?</p>
+            <ol class="qp-options">
+              <li><code>"r"</code></li>
+              <li><code>"rb"</code></li>
+              <li><code>"wb"</code></li>
+              <li><code>"ab"</code></li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="funcoes-texto">
+      <h2>As "primas" de <code>printf</code> e <code>scanf</code></h2>
+      <p>As funções de arquivo texto são parentes próximas das funções de teclado e tela que já conhecemos. A diferença é um parâmetro a mais: o <code>FILE *</code> que indica <strong>qual</strong> arquivo usar.</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Teclado / tela</th><th>Arquivo</th><th>Função</th></tr></thead>
+          <tbody>
+            <tr><td><code>putchar(c)</code></td><td><code>fputc(c, arq)</code></td><td class="trace-desc">escreve um caractere</td></tr>
+            <tr><td><code>getchar()</code></td><td><code>fgetc(arq)</code></td><td class="trace-desc">lê um caractere</td></tr>
+            <tr><td><code>printf(…)</code></td><td><code>fprintf(arq, …)</code></td><td class="trace-desc">escrita formatada</td></tr>
+            <tr><td><code>scanf(…)</code></td><td><code>fscanf(arq, …)</code></td><td class="trace-desc">leitura formatada</td></tr>
+            <tr><td><code>puts(s)</code></td><td><code>fputs(s, arq)</code></td><td class="trace-desc">escreve uma string</td></tr>
+            <tr><td><code>fgets(s, n, stdin)</code></td><td><code>fgets(s, n, arq)</code></td><td class="trace-desc">lê uma linha</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Curiosidade</span>
+        <p>O teclado e a tela <strong>também</strong> são <code>FILE *</code>: <code>stdin</code> e <code>stdout</code>. <code>printf(…)</code> é o mesmo que <code>fprintf(stdout, …)</code>. É por isso que já usávamos <code>fgets(s, n, stdin)</code> na Unidade II.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="escrita-texto">
+      <h2>Escrevendo: <code>fprintf</code> e o modo <code>"a"</code></h2>
+<pre><code>#include &lt;stdio.h&gt;
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    FILE *arq = fopen(<span class="tok-str">"tabuada.txt"</span>, <span class="tok-str">"w"</span>);
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Erro ao criar o arquivo!\n"</span>);
+        <span class="tok-kw">return</span> 1;
+    }
+
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 1; i &lt;= 10; i++)
+        fprintf(arq, <span class="tok-str">"7 x %2d = %2d\n"</span>, i, 7 * i);
+
+    fclose(arq);
+    printf(<span class="tok-str">"Arquivo tabuada.txt gerado.\n"</span>);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <p>Execute e abra <code>tabuada.txt</code> em um editor: o conteúdo é exatamente o que apareceria na tela com <code>printf</code>.</p>
+      <h3>Acrescentando: modo <code>"a"</code></h3>
+<pre><code>FILE *log = fopen(<span class="tok-str">"log.txt"</span>, <span class="tok-str">"a"</span>);
+<span class="tok-kw">if</span> (log != <span class="tok-null">NULL</span>) {
+    fprintf(log, <span class="tok-str">"Programa executado com sucesso.\n"</span>);
+    fclose(log);
+}</code></pre>
+      <p>Execute três vezes e o arquivo terá <strong>três</strong> linhas. Com <code>"w"</code>, teria sempre uma.</p>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="leitura-texto">
+      <h2>Lendo: <code>fgetc</code>, <code>fgets</code> e <code>fscanf</code></h2>
+      <h3>Caractere a caractere: <code>fgetc</code> e <code>EOF</code></h3>
+      <p><code>fgetc</code> devolve o próximo caractere do arquivo ou a constante <strong><code>EOF</code></strong> (<em>End Of File</em>, normalmente <code>-1</code>) quando o arquivo acabou. Por isso o retorno deve ser guardado em um <strong><code>int</code></strong>, e não em um <code>char</code>:</p>
+<pre><code>#include &lt;stdio.h&gt;
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    FILE *arq = fopen(<span class="tok-str">"tabuada.txt"</span>, <span class="tok-str">"r"</span>);
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Erro ao abrir o arquivo!\n"</span>);
+        <span class="tok-kw">return</span> 1;
+    }
+
+    <span class="tok-kw">int</span> c, linhas = 0;
+    <span class="tok-kw">while</span> ((c = fgetc(arq)) != <span class="tok-null">EOF</span>) {
+        putchar(c);
+        <span class="tok-kw">if</span> (c == '\n')
+            linhas++;
+    }
+
+    fclose(arq);
+    printf(<span class="tok-str">"\nO arquivo tem %d linhas.\n"</span>, linhas);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <h3>Linha a linha: <code>fgets</code></h3>
+<pre><code><span class="tok-kw">char</span> linha[100];
+
+<span class="tok-kw">while</span> (fgets(linha, <span class="tok-kw">sizeof</span>(linha), arq) != <span class="tok-null">NULL</span>) {
+    printf("&gt; %s", linha);
+}</code></pre>
+      <ul>
+        <li><code>fgets</code> lê até encontrar um <code>'\n'</code>, até ler <code>n - 1</code> caracteres ou até o fim do arquivo, o que vier primeiro.</li>
+        <li>O <code>'\n'</code> <strong>fica</strong> dentro da string. Como na Unidade II, <code>linha[strcspn(linha, "\n")] = '\0';</code> o remove.</li>
+        <li>Retorna <code>NULL</code> quando não há mais nada para ler.</li>
+      </ul>
+      <h3>Leitura formatada: <code>fscanf</code></h3>
+      <p><code>fscanf</code> funciona como o <code>scanf</code> e retorna <strong>quantos itens conseguiu ler</strong>, ou <code>EOF</code> se o arquivo terminou antes de ler qualquer coisa. Considere o arquivo <code>notas.txt</code>:</p>
+<pre><code>842250 7.5 8.0
+844557 5.0 6.5
+845160 9.0 9.5</code></pre>
+<pre><code><span class="tok-kw">int</span> ra;
+<span class="tok-kw">float</span> n1, n2;
+
+<span class="tok-kw">while</span> (fscanf(arq, <span class="tok-str">"%d %f %f"</span>, &amp;ra, &amp;n1, &amp;n2) == 3) {
+    printf(<span class="tok-str">"RA %d - média %.2f\n"</span>, ra, (n1 + n2) / 2);
+}</code></pre>
+      <p>Comparar com <code>== 3</code> (o número de itens esperado) é mais seguro do que comparar com <code>!= EOF</code>: se uma linha estiver mal formatada, o laço para em vez de entrar em <em>loop</em> infinito.</p>
+      <h3>Armadilha clássica: <code>while (!feof(arq))</code></h3>
+      <p>A função <code>feof</code> só fica verdadeira <strong>depois</strong> que uma leitura <strong>já falhou</strong> por chegar ao fim. Por isso o laço da esquerda processa a última linha <strong>duas vezes</strong>:</p>
+      <div class="code-compare">
+        <div>
+          <span class="panel-label bad">✗ Evite</span>
+<pre><code><span class="tok-kw">while</span> (!feof(arq)) {
+    fscanf(arq, <span class="tok-str">"%d %f %f"</span>, &amp;ra, &amp;n1, &amp;n2);
+    printf(<span class="tok-str">"%d\n"</span>, ra);
+}
+<span class="tok-comment">// imprime 845160 duas vezes</span></code></pre>
+        </div>
+        <div>
+          <span class="panel-label good">✓ Prefira</span>
+<pre><code><span class="tok-kw">while</span> (fscanf(arq, <span class="tok-str">"%d %f %f"</span>,
+              &amp;ra, &amp;n1, &amp;n2) == 3) {
+    printf(<span class="tok-str">"%d\n"</span>, ra);
+}
+<span class="tok-comment">// o laço para na leitura que falha</span></code></pre>
+        </div>
+      </div>
+      <p>Regra prática: controle o laço pelo <strong>retorno da função de leitura</strong>.</p>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="csv">
+      <h2>Arquivos CSV + structs</h2>
+      <p>O formato <strong>CSV</strong> (<em>Comma-Separated Values</em>) é um arquivo texto em que cada linha é um registro e os campos são separados por um delimitador: <code>,</code> ou, no Brasil, <code>;</code>, já que a vírgula é o separador decimal. É o formato que Excel e Google Sheets exportam. Juntando com a Unidade V, <strong>cada linha do CSV vira uma struct</strong>.</p>
+      <p><code>alunos.csv</code>:</p>
+<pre><code>RA;Nome;Nota
+842250;Ana Beatriz Lima;8.5
+844557;Bruno Henrique Souza;7.8
+845160;Carla Mendes Oliveira;5.1</code></pre>
+<pre><code>#include &lt;stdio.h&gt;
+
+#define MAX 100
+
+<span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> {
+    <span class="tok-kw">int</span>   ra;
+    <span class="tok-kw">char</span>  nome[50];
+    <span class="tok-kw">float</span> nota;
+} Aluno;
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    FILE *arq = fopen(<span class="tok-str">"alunos.csv"</span>, <span class="tok-str">"r"</span>);
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Erro ao abrir alunos.csv\n"</span>);
+        <span class="tok-kw">return</span> 1;
+    }
+
+    Aluno vet[MAX];
+    <span class="tok-kw">int</span> n = 0;
+    <span class="tok-kw">char</span> cabecalho[100];
+
+    fgets(cabecalho, <span class="tok-kw">sizeof</span>(cabecalho), arq);   <span class="tok-comment">// descarta a 1a linha</span>
+
+    <span class="tok-kw">while</span> (n &lt; MAX &amp;&amp;
+           fscanf(arq, <span class="tok-str">"%d;%49[^;];%f\n"</span>, &amp;vet[n].ra, vet[n].nome, &amp;vet[n].nota) == 3) {
+        n++;
+    }
+    fclose(arq);
+
+    FILE *saida = fopen(<span class="tok-str">"aprovados.csv"</span>, <span class="tok-str">"w"</span>);
+    <span class="tok-kw">if</span> (saida == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Erro ao criar aprovados.csv\n"</span>);
+        <span class="tok-kw">return</span> 1;
+    }
+    fprintf(saida, <span class="tok-str">"RA;Nome;Nota\n"</span>);
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; n; i++)
+        <span class="tok-kw">if</span> (vet[i].nota &gt;= 6.0)
+            fprintf(saida, <span class="tok-str">"%d;%s;%.1f\n"</span>, vet[i].ra, vet[i].nome, vet[i].nota);
+    fclose(saida);
+
+    printf(<span class="tok-str">"%d alunos lidos.\n"</span>, n);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <div class="callout">
+        <span class="callout-label">Lendo campos com espaços</span>
+        <p>O especificador <code>%49[^;]</code> significa "leia <strong>até 49 caracteres que não sejam <code>;</code></strong>". É assim que lemos um nome com espaços até o próximo separador. O <code>\n</code> no final do formato consome a quebra de linha.</p>
+      </div>
+      <div class="quiz-print" id="quiz-parte3">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 3 — Modo texto <span>— confira as respostas no Gabarito, seção 13</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Por que o retorno de <code>fgetc</code> deve ser armazenado em um <code>int</code>?</p>
+            <ol class="qp-options">
+              <li>Porque caracteres são números</li>
+              <li>Para que seja possível distinguir o valor <code>EOF</code> de um caractere válido</li>
+              <li>Porque <code>char</code> não pode ser comparado com <code>!=</code></li>
+              <li>Porque <code>fgetc</code> sempre lê 4 bytes</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">O arquivo tem 3 linhas no formato <code>"%d %f"</code>. Quantas vezes o laço <code>while (fscanf(arq, "%d %f", &amp;x, &amp;y) == 2)</code> executa?</p>
+            <ol class="qp-options">
+              <li>2</li>
+              <li>3</li>
+              <li>4</li>
+              <li>Infinitas</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual o efeito de <code>%29[^;]</code> em um <code>fscanf</code>?</p>
+            <ol class="qp-options">
+              <li>Lê exatamente 29 caracteres</li>
+              <li>Lê até 29 caracteres, parando no primeiro <code>;</code></li>
+              <li>Lê até encontrar 29 pontos e vírgulas</li>
+              <li>Ignora os 29 primeiros caracteres</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="binario">
+      <h2><code>fwrite</code>, <code>fread</code> e o cadastro persistente</h2>
+      <p>No modo binário não há conversão para texto: os bytes da memória são copiados <strong>como estão</strong> para o arquivo, e vice-versa. As vantagens:</p>
+      <ul>
+        <li><strong>Simplicidade</strong>: uma struct inteira, ou um vetor inteiro de structs, é gravada com <strong>um único comando</strong>.</li>
+        <li><strong>Tamanho fixo</strong>: todo registro ocupa exatamente <code>sizeof(tipo)</code> bytes, o que permite <strong>acesso aleatório</strong>.</li>
+        <li><strong>Velocidade</strong>: não há conversão de números para dígitos e de volta.</li>
+      </ul>
+      <p>A desvantagem: o arquivo <strong>não é legível</strong> por pessoas e pode não ser portável entre computadores ou compiladores diferentes (tamanho dos tipos, ordem dos bytes, alinhamento das structs).</p>
+      <h3>Escrevendo: <code>fwrite</code></h3>
+<pre><code><span class="tok-kw">size_t</span> fwrite(<span class="tok-kw">const</span> <span class="tok-kw">void</span> *origem, <span class="tok-kw">size_t</span> tamanho, <span class="tok-kw">size_t</span> quantidade, FILE *arq);</code></pre>
+      <p>Grava <code>quantidade</code> elementos de <code>tamanho</code> bytes cada, a partir do endereço <code>origem</code>, e retorna quantos elementos foram <strong>efetivamente gravados</strong>.</p>
+<pre><code>Aluno a = {842250, <span class="tok-str">"Ana Beatriz Lima"</span>, 8.5};
+Aluno turma[40];
+
+fwrite(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq);        <span class="tok-comment">// uma struct</span>
+fwrite(turma, <span class="tok-kw">sizeof</span>(Aluno), 40, arq);    <span class="tok-comment">// o vetor inteiro</span></code></pre>
+      <p>Repare no <code>void *</code> (Unidade IV): <code>fwrite</code> aceita o endereço de <strong>qualquer</strong> tipo, porque só enxerga bytes.</p>
+      <h3>Lendo: <code>fread</code></h3>
+<pre><code><span class="tok-kw">size_t</span> fread(<span class="tok-kw">void</span> *destino, <span class="tok-kw">size_t</span> tamanho, <span class="tok-kw">size_t</span> quantidade, FILE *arq);</code></pre>
+      <p>Mesma ideia, no sentido contrário. Retorna quantos elementos <strong>conseguiu ler</strong>, o que é perfeito para controlar o laço:</p>
+<pre><code>Aluno a;
+
+<span class="tok-kw">while</span> (fread(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq) == 1) {
+    printf(<span class="tok-str">"%d - %s - %.1f\n"</span>, a.ra, a.nome, a.nota);
+}</code></pre>
+      <h3>Exemplo completo: cadastro persistente</h3>
+<pre><code>#include &lt;stdio.h&gt;
+
+<span class="tok-kw">typedef</span> <span class="tok-kw">struct</span> {
+    <span class="tok-kw">int</span>   ra;
+    <span class="tok-kw">char</span>  nome[50];
+    <span class="tok-kw">float</span> nota;
+} Aluno;
+
+<span class="tok-kw">void</span> grava(<span class="tok-kw">const</span> <span class="tok-kw">char</span> *nome_arq) {
+    FILE *arq = fopen(nome_arq, <span class="tok-str">"ab"</span>);    <span class="tok-comment">// acrescenta ao final</span>
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) <span class="tok-kw">return</span>;
+
+    Aluno a;
+    printf(<span class="tok-str">"RA: "</span>);
+    scanf(<span class="tok-str">"%d"</span>, &amp;a.ra);
+    printf(<span class="tok-str">"Nome: "</span>);
+    scanf(<span class="tok-str">" %49[^\n]"</span>, a.nome);
+    printf(<span class="tok-str">"Nota: "</span>);
+    scanf(<span class="tok-str">"%f"</span>, &amp;a.nota);
+
+    fwrite(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq);
+    fclose(arq);
+}
+
+<span class="tok-kw">void</span> lista(<span class="tok-kw">const</span> <span class="tok-kw">char</span> *nome_arq) {
+    FILE *arq = fopen(nome_arq, <span class="tok-str">"rb"</span>);
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) {
+        printf(<span class="tok-str">"Nenhum aluno cadastrado.\n"</span>);
+        <span class="tok-kw">return</span>;
+    }
+
+    Aluno a;
+    <span class="tok-kw">while</span> (fread(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq) == 1)
+        printf(<span class="tok-str">"%d - %-30s %.1f\n"</span>, a.ra, a.nome, a.nota);
+    fclose(arq);
+}
+
+<span class="tok-kw">int</span> main(<span class="tok-kw">void</span>) {
+    <span class="tok-kw">int</span> op;
+    <span class="tok-kw">do</span> {
+        printf(<span class="tok-str">"\n1-Cadastrar  2-Listar  0-Sair: "</span>);
+        scanf(<span class="tok-str">"%d"</span>, &amp;op);
+        <span class="tok-kw">if</span> (op == 1) grava(<span class="tok-str">"alunos.dat"</span>);
+        <span class="tok-kw">else</span> <span class="tok-kw">if</span> (op == 2) lista(<span class="tok-str">"alunos.dat"</span>);
+    } <span class="tok-kw">while</span> (op != 0);
+    <span class="tok-kw">return</span> 0;
+}</code></pre>
+      <div class="callout">
+        <span class="callout-label">Experimente</span>
+        <p>Cadastre alguns alunos, <strong>feche o programa</strong>, execute de novo e liste: os dados continuam lá. Depois abra <code>alunos.dat</code> no Bloco de Notas e observe o resultado.</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="chapter" id="fseek">
+      <h2>Acesso aleatório: <code>fseek</code>, <code>ftell</code> e <code>rewind</code></h2>
+      <p>Todo arquivo aberto tem um <strong>indicador de posição</strong>, um "cursor" que avança automaticamente a cada leitura ou escrita. Até agora sempre lemos do início ao fim (<strong>acesso sequencial</strong>). Com as funções abaixo podemos mover o cursor livremente (<strong>acesso aleatório</strong>, ou <strong>direto</strong>):</p>
+<pre><code><span class="tok-kw">int</span>  fseek(FILE *arq, <span class="tok-kw">long</span> deslocamento, <span class="tok-kw">int</span> origem);
+<span class="tok-kw">long</span> ftell(FILE *arq);       <span class="tok-comment">// posição atual, em bytes desde o início</span>
+<span class="tok-kw">void</span> rewind(FILE *arq);      <span class="tok-comment">// volta ao início (= fseek(arq, 0, SEEK_SET))</span></code></pre>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>origem</th><th>O deslocamento é contado a partir do…</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-step">SEEK_SET</td><td class="trace-desc">início do arquivo</td></tr>
+            <tr><td class="trace-step">SEEK_CUR</td><td class="trace-desc">posição atual</td></tr>
+            <tr><td class="trace-step">SEEK_END</td><td class="trace-desc">final do arquivo</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Como cada registro ocupa <code>sizeof(Aluno)</code> bytes, o registro de índice <code>k</code> começa no byte <code>k * sizeof(Aluno)</code>:</p>
+      <figure class="diagram">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 560 170" role="img" aria-label="Arquivo binário com registros de tamanho fixo: registro 0 começa no byte 0, registro 1 em sizeof(Aluno), registro 2 em 2 vezes sizeof(Aluno). fseek com 2 vezes sizeof(Aluno) e SEEK_SET posiciona o cursor no início do registro 2.">
+<text class="cell-index" x="20" y="34" font-size="9.5" text-anchor="middle">0</text>
+<text class="cell-index" x="140" y="34" font-size="9.5" text-anchor="middle">1 × sizeof</text>
+<text class="cell-index" x="260" y="34" font-size="9.5" text-anchor="middle">2 × sizeof</text>
+<text class="cell-index" x="380" y="34" font-size="9.5" text-anchor="middle">3 × sizeof</text>
+<text class="diagram-label" x="540" y="34" font-size="9.5" text-anchor="end">byte</text>
+<rect class="cell-box" x="20" y="44" width="120" height="48" rx="3"></rect>
+<text class="cell-char" x="80" y="66" font-size="11" text-anchor="middle">registro 0</text>
+<text class="cell-index" x="80" y="82" font-size="9.5" text-anchor="middle">842250 · Ana</text>
+<rect class="cell-box" x="140" y="44" width="120" height="48" rx="3"></rect>
+<text class="cell-char" x="200" y="66" font-size="11" text-anchor="middle">registro 1</text>
+<text class="cell-index" x="200" y="82" font-size="9.5" text-anchor="middle">844557 · Bruno</text>
+<rect class="cell-null" x="260" y="44" width="120" height="48" rx="3"></rect>
+<text class="cell-null-text" x="320" y="66" font-size="11" text-anchor="middle">registro 2</text>
+<text class="cell-null-text" x="320" y="82" font-size="9.5" text-anchor="middle">845160 · Carla</text>
+<rect class="cell-empty" x="380" y="44" width="160" height="48" rx="3"></rect>
+<text class="diagram-label" x="460" y="73" font-size="16" text-anchor="middle">…</text>
+<line class="diagram-line" x1="260" y1="134" x2="260" y2="102"></line>
+<polygon class="diagram-tri" points="260,96 256,104 264,104"></polygon>
+<text class="diagram-label strong" x="260" y="154" font-size="11" text-anchor="middle">fseek(arq, 2 * sizeof(Aluno), SEEK_SET);</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 3.</strong> Em um arquivo binário de structs, todos os registros têm o mesmo tamanho, então a posição de cada um é uma simples multiplicação. O <code>fseek</code> leva o cursor direto ao registro 2, sem ler os anteriores.</figcaption>
+      </figure>
+      <h3>Contando registros sem ler o arquivo</h3>
+<pre><code>fseek(arq, 0, SEEK_END);
+<span class="tok-kw">long</span> n = ftell(arq) / <span class="tok-kw">sizeof</span>(Aluno);
+rewind(arq);</code></pre>
+      <h3>Alterando o registro <code>k</code> no próprio arquivo</h3>
+      <p>O modo <code>"r+b"</code> permite ler e escrever sem apagar o conteúdo:</p>
+<pre><code><span class="tok-kw">void</span> altera_nota(<span class="tok-kw">const</span> <span class="tok-kw">char</span> *nome_arq, <span class="tok-kw">int</span> k, <span class="tok-kw">float</span> nova) {
+    FILE *arq = fopen(nome_arq, <span class="tok-str">"r+b"</span>);
+    <span class="tok-kw">if</span> (arq == <span class="tok-null">NULL</span>) <span class="tok-kw">return</span>;
+
+    Aluno a;
+    fseek(arq, k * <span class="tok-kw">sizeof</span>(Aluno), SEEK_SET);
+    <span class="tok-kw">if</span> (fread(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq) == 1) {
+        a.nota = nova;
+        fseek(arq, k * <span class="tok-kw">sizeof</span>(Aluno), SEEK_SET);   <span class="tok-comment">// volta ao início do registro</span>
+        fwrite(&amp;a, <span class="tok-kw">sizeof</span>(Aluno), 1, arq);
+    }
+    fclose(arq);
+}</code></pre>
+      <p>O segundo <code>fseek</code> é necessário porque o <code>fread</code> <strong>avançou</strong> o cursor para o registro seguinte. Além disso, o padrão C exige um <code>fseek</code> (ou <code>rewind</code>) entre uma leitura e uma escrita no mesmo arquivo.</p>
+      <div class="callout">
+        <span class="callout-label">E em arquivo texto?</span>
+        <p>Não funciona da mesma forma: as linhas têm tamanhos diferentes, então não há como calcular onde começa a linha <code>k</code> sem ler todas as anteriores.</p>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="chapter" id="comparacao">
+      <h2>Texto × binário</h2>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th></th><th>Modo texto</th><th>Modo binário</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Modo no <code>fopen</code></td><td><code>"r"</code>, <code>"w"</code>, <code>"a"</code>…</td><td><code>"rb"</code>, <code>"wb"</code>, <code>"ab"</code>…</td></tr>
+            <tr><td class="trace-desc">Conteúdo</td><td>caracteres legíveis</td><td>cópia dos bytes da memória</td></tr>
+            <tr><td class="trace-desc">Funções típicas</td><td><code>fprintf</code>, <code>fscanf</code>, <code>fgets</code></td><td><code>fwrite</code>, <code>fread</code></td></tr>
+            <tr><td class="trace-desc">Tamanho de um registro</td><td>variável</td><td>fixo (<code>sizeof</code>)</td></tr>
+            <tr><td class="trace-desc">Acesso</td><td>sequencial</td><td>sequencial ou aleatório</td></tr>
+            <tr><td class="trace-desc">Legível por pessoas</td><td>sim</td><td>não</td></tr>
+            <tr><td class="trace-desc">Portável entre sistemas</td><td>sim</td><td>não necessariamente</td></tr>
+            <tr><td class="trace-desc">Uso típico</td><td>CSV, configuração, logs</td><td>bancos de dados simples, imagens</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Windows e o '\n'</span>
+        <p>No Windows, o modo texto converte <code>'\n'</code> em <code>"\r\n"</code> ao gravar, e o contrário ao ler. Por isso, ao gravar structs com <code>fwrite</code>, <strong>sempre</strong> use o <code>b</code>: sem ele, um byte que valha <code>10</code> (o código de <code>'\n'</code>) dentro de um <code>int</code> seria alterado.</p>
+      </div>
+      <div class="quiz-print" id="quiz-parte4">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 4 — Modo binário <span>— confira as respostas no Gabarito, seção 13</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">O que retorna <code>fread(&amp;a, sizeof(Aluno), 1, arq)</code> quando o arquivo já terminou?</p>
+            <ol class="qp-options">
+              <li><code>EOF</code></li>
+              <li><code>NULL</code></li>
+              <li><code>0</code></li>
+              <li><code>1</code></li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Em um arquivo binário de structs <code>Aluno</code>, qual comando posiciona o cursor no <strong>quinto</strong> registro?</p>
+            <ol class="qp-options">
+              <li><code>fseek(arq, 5, SEEK_SET);</code></li>
+              <li><code>fseek(arq, 4 * sizeof(Aluno), SEEK_SET);</code></li>
+              <li><code>fseek(arq, 5 * sizeof(Aluno), SEEK_SET);</code></li>
+              <li><code>fseek(arq, sizeof(Aluno), SEEK_CUR);</code></li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual modo abre um arquivo binário <strong>existente</strong> para leitura <strong>e</strong> alteração, sem apagar o conteúdo?</p>
+            <ol class="qp-options">
+              <li><code>"wb"</code></li>
+              <li><code>"w+b"</code></li>
+              <li><code>"ab"</code></li>
+              <li><code>"r+b"</code></li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="chapter" id="exercicios">
+      <h2>Exercícios de laboratório</h2>
+      <p>Resolva em ordem: cada bloco reaproveita os arquivos e tipos do anterior. Compile sempre com <code>gcc -Wall</code> e deixe os arquivos de dados na mesma pasta do executável.</p>
+      <h3>Modo texto</h3>
+      <p><strong>1. Contador.</strong> Leia o nome de um arquivo texto do teclado e informe quantos <strong>caracteres</strong>, <strong>linhas</strong> e <strong>palavras</strong> ele possui, como o comando <code>wc</code> do Linux. Teste com o próprio arquivo <code>.c</code> do exercício.</p>
+      <p><strong>2. Cópia em maiúsculas.</strong> Escreva <code>int copia_maiusculo(const char *origem, const char *destino)</code>, que copia um arquivo texto para outro convertendo as letras para maiúsculas (<code>toupper</code>, de <code>&lt;ctype.h&gt;</code>). Retorne <code>0</code> em caso de sucesso e <code>1</code> se algum arquivo não puder ser aberto.</p>
+      <p><strong>3. Diário de bordo.</strong> Leia uma frase do teclado e <strong>acrescente</strong>-a ao arquivo <code>diario.txt</code>, precedida do número da entrada (<code>#1</code>, <code>#2</code>, …). Dica: antes de acrescentar, conte quantas linhas o arquivo já tem.</p>
+      <p><strong>4. Boletim em CSV.</strong> Crie, em um editor ou planilha, o arquivo <code>turma.csv</code> com o cabeçalho <code>RA;Nome;P1;P2;Trabalho</code>. Leia-o para um vetor de structs, calcule a média de cada aluno (<code>0.4*P1 + 0.4*P2 + 0.2*Trabalho</code>) e gere <code>boletim.csv</code> com <code>RA;Nome;Media;Situacao</code> (<code>Aprovado</code> se média ≥ 6, senão <code>Reprovado</code>). Abra o resultado na planilha.</p>
+      <h3>Modo binário</h3>
+      <p><strong>5. Vetor persistente.</strong> Leia <code>n</code> números <code>float</code> em um vetor alocado com <code>malloc</code> e grave-os em <code>numeros.bin</code> com <strong>um único</strong> <code>fwrite</code>. Em um segundo programa, descubra quantos números existem usando <code>fseek</code>/<code>ftell</code>, aloque um vetor do tamanho exato, leia tudo com <strong>um único</strong> <code>fread</code> e mostre a média. Compare o tamanho de <code>numeros.bin</code> com o de um arquivo texto com os mesmos números.</p>
+      <p><strong>6. Cadastro completo.</strong> Estenda o cadastro persistente com as opções:</p>
+      <ul>
+        <li><strong>Buscar por RA</strong> (leitura sequencial até encontrar);</li>
+        <li><strong>Consultar o registro de número <code>k</code></strong> (acesso direto com <code>fseek</code>);</li>
+        <li><strong>Alterar a nota</strong> de um aluno encontrado pelo RA (modo <code>"r+b"</code>).</li>
+      </ul>
+      <p><strong>7. Conversor.</strong> Escreva um programa que converta o <code>turma.csv</code> do exercício 4 em <code>turma.dat</code> (binário de structs) e outro que faça o caminho inverso. Verifique que, após ida e volta, o CSV gerado tem o mesmo conteúdo do original.</p>
+      <h3>8. Desafio: ranking do campeonato</h3>
+      <p>Dado um CSV com os jogos de um campeonato (<code>rodada;mandante;gols_mandante;gols_visitante;visitante</code>), monte a tabela de classificação em um vetor de structs <code>Time</code> (nome, pontos, vitórias, empates, derrotas, gols pró, gols contra), ordene por pontos e saldo de gols e grave:</p>
+      <ul>
+        <li><code>classificacao.csv</code>, para ser aberta em uma planilha;</li>
+        <li><code>classificacao.dat</code>, binário, que um segundo programa deve ler para responder "qual a posição do time X?" e "quem está na posição k?" (esta última com <code>fseek</code>).</li>
+      </ul>
+      <h3>Resumo da unidade</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Conceito</th><th>Sintaxe</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Declarar</td><td><code>FILE *arq;</code></td></tr>
+            <tr><td class="trace-desc">Abrir</td><td><code>arq = fopen("nome.txt", "r");</code></td></tr>
+            <tr><td class="trace-desc">Verificar</td><td><code>if (arq == NULL) { … }</code></td></tr>
+            <tr><td class="trace-desc">Fechar</td><td><code>fclose(arq);</code></td></tr>
+            <tr><td class="trace-desc">Modos texto</td><td><code>"r"</code>, <code>"w"</code> (apaga!), <code>"a"</code>, <code>"r+"</code>, <code>"w+"</code>, <code>"a+"</code></td></tr>
+            <tr><td class="trace-desc">Modos binário</td><td><code>"rb"</code>, <code>"wb"</code>, <code>"ab"</code>, <code>"r+b"</code>…</td></tr>
+            <tr><td class="trace-desc">Caractere (fim: <code>EOF</code>)</td><td><code>fputc(c, arq);</code> / <code>int c = fgetc(arq);</code></td></tr>
+            <tr><td class="trace-desc">Linha (fim: <code>NULL</code>)</td><td><code>fputs(s, arq);</code> / <code>fgets(s, n, arq)</code></td></tr>
+            <tr><td class="trace-desc">Formatado (retorna nº de itens)</td><td><code>fprintf(arq, "%d\n", x);</code> / <code>fscanf(arq, "%d", &amp;x)</code></td></tr>
+            <tr><td class="trace-desc">Bloco binário (retorna nº de elementos)</td><td><code>fwrite(&amp;x, sizeof(x), 1, arq);</code> / <code>fread(&amp;x, sizeof(x), 1, arq)</code></td></tr>
+            <tr><td class="trace-desc">Posicionar</td><td><code>fseek(arq, k * sizeof(T), SEEK_SET);</code></td></tr>
+            <tr><td class="trace-desc">Posição atual</td><td><code>long pos = ftell(arq);</code></td></tr>
+            <tr><td class="trace-desc">Voltar ao início</td><td><code>rewind(arq);</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada parte, com a justificativa de cada alternativa correta.</p>
+
+      <div class="gabarito-group">
+        <h3>Parte 1 — Por que arquivos</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Porque eles estão na memória principal, que é volátil</span><span class="gab-explain">— Variáveis e vetores vivem na RAM, que só guarda dados enquanto o programa executa. Para persistir, é preciso gravar na memória secundária, em um arquivo.</span></li>
+          <li><span class="gab-answer">2. c) Guardam caracteres legíveis, organizados em linhas</span><span class="gab-explain">— Arquivo texto guarda caracteres (um por dígito, no caso dos números) separados em linhas por '\n'. As outras alternativas descrevem o arquivo binário.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 2 — Abrindo e fechando</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. c) O conteúdo anterior é apagado</span><span class="gab-explain">— O modo "w" trunca o arquivo: o conteúdo anterior é perdido sem aviso. Para escrever depois das linhas existentes, use "a".</span></li>
+          <li><span class="gab-answer">2. b) &quot;rb&quot;</span><span class="gab-explain">— "r" é leitura e o sufixo b indica modo binário. "wb" e "ab" são modos de escrita.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 3 — Modo texto</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Para que seja possível distinguir o valor EOF de um caractere válido</span><span class="gab-explain">— fgetc devolve qualquer um dos 256 valores de byte ou EOF (-1). Um char não tem espaço para representar os 257 casos, e EOF poderia ser confundido com um caractere.</span></li>
+          <li><span class="gab-answer">2. b) 3</span><span class="gab-explain">— As três leituras retornam 2 e o corpo executa; a quarta tentativa retorna EOF e o laço termina. Com while (!feof(arq)) a última linha seria processada duas vezes.</span></li>
+          <li><span class="gab-answer">3. b) Lê até 29 caracteres, parando no primeiro ;</span><span class="gab-explain">— [^;] é o conjunto de todos os caracteres exceto ';' e 29 é o limite máximo. É assim que se lê um campo de CSV com espaços.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 4 — Modo binário</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. c) 0</span><span class="gab-explain">— fread retorna quantos elementos conseguiu ler. Sem dados restantes, retorna 0, por isso o laço compara com == 1.</span></li>
+          <li><span class="gab-answer">2. b) fseek(arq, 4 * sizeof(Aluno), SEEK_SET);</span><span class="gab-explain">— Os registros são numerados a partir de 0, como nos vetores: o quinto é o de índice 4, que começa no byte 4 * sizeof(Aluno).</span></li>
+          <li><span class="gab-answer">3. d) &quot;r+b&quot;</span><span class="gab-explain">— "r+b" lê e escreve a partir do início sem truncar. "wb" e "w+b" apagam o arquivo; "ab" só escreve no final.</span></li>
+        </ol>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade VI — Arquivos em C · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>
