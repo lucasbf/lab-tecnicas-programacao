@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ordenação e Pesquisa (Parte I) — Unidade VII (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .call-strip span.fn {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.7rem 0 0.15rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  .code-compare {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  .code-compare .panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .code-compare .panel-label.bad { color: var(--bad); }
+  .code-compare .panel-label.good { color: var(--good); }
+  .code-compare pre { margin-bottom: 0; height: 100%; }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards used as exercise cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+
+  /* ---------- Trace table (step-by-step simulation) ---------- */
+
+  .trace-wrap {
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    break-inside: avoid;
+  }
+  .trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--surface);
+  }
+  .trace-table th, .trace-table td {
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .trace-table thead th {
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .trace-table td.trace-desc {
+    white-space: normal;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    min-width: 190px;
+  }
+  .trace-table tr:last-child td { border-bottom: none; }
+  .trace-step { color: var(--accent-2); font-weight: 700; }
+  .trace-changed { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  .trace-gone { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+
+  @media (max-width: 560px) {
+    .type-cards { grid-template-columns: 1fr; }
+    .code-compare { grid-template-columns: 1fr; }
+  }
+
+  :root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; }
+  section.chapter { break-inside: auto; }
+  nav.toc { break-inside: avoid; }
+  .growth { break-inside: avoid; }
+  .trace-wrap { overflow: visible; }
+  .trace-table th, .trace-table td { white-space: normal; padding: 0.4rem 0.45rem; }
+  .vec { gap: 1px; white-space: nowrap; }
+  .vec .vc { min-width: 1.45em; padding: 0 0.1em; font-size: 0.8em; }
+
+  /* ---------- Unidade VII: vetores nas tabelas ---------- */
+  .kicker-line {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin: -0.6rem 0 1rem;
+  }
+  .vec { display: inline-flex; gap: 3px; font-family: var(--font-mono); }
+  .vec .vc {
+    display: inline-block;
+    min-width: 1.7em;
+    padding: 0.05em 0.25em;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.86em;
+    background: var(--surface);
+  }
+  .vec .vc.s { background: var(--surface-2); color: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .trace-table tr.total-row td { font-family: var(--font-mono); }
+  .fill-table td { min-width: 9.5em; height: 2.2em; }
+  .growth .g-title { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; margin: 0 0 0.4rem; }
+  .growth .legend-chips { margin: 0 0 0.4rem; }
+  .growth svg .g-grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 4; }
+  .growth svg .g-axis { stroke: var(--ink-dim); stroke-width: 1; }
+  .growth svg .g-tick { fill: var(--ink-dim); font-family: var(--font-mono); font-size: 11px; }
+  .growth svg .g-lab { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .growth svg .g-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .growth svg .g-line.s1 { stroke: var(--series-1); }
+  .growth svg .g-line.s2 { stroke: var(--series-2); }
+  .growth svg .g-line.s3 { stroke: var(--series-3); }
+  .swatch.sw-s1 { background: var(--series-1); }
+  .swatch.sw-s2 { background: var(--series-2); }
+  .swatch.sw-s3 { background: var(--series-3); }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade VII · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Métodos de Ordenação e Pesquisa<br><span class="dim">Parte I — Insertion, Selection e Bubble Sort</span></h1>
+    <p class="subtitle">Ordenar dados é fundamental, uma vez que teremos que encontrá-los depois. Nesta primeira parte vamos aprender a avaliar a eficiência de um algoritmo pela complexidade de tempo e de espaço, com a notação Big-O, e estudar três algoritmos de ordenação ineficientes, mas simples: Insertion Sort, Selection Sort e Bubble Sort.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">6 5 3 1 8 7 2 4</span>
+      <span class="arrow">→</span>
+      <span class="fn">insertion · selection · bubble</span>
+      <span class="arrow">→</span>
+      <span class="fn">1 2 3 4 5 6 7 8</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li class="toc-group" role="presentation">Parte 1 — Avaliando algoritmos</li>
+      <li><a href="#motivacao"><span class="num">01</span> Ordenar para encontrar depois</a></li>
+      <li><a href="#eficiencia"><span class="num">02</span> Como avaliar a eficiência de um algoritmo</a></li>
+      <li><a href="#big-o"><span class="num">03</span> Notação Big-O</a></li>
+
+      <li class="toc-group" role="presentation">Parte 2 — Insertion Sort</li>
+      <li><a href="#insertion"><span class="num">04</span> Ideia e exemplo</a></li>
+      <li><a href="#insertion-codigo"><span class="num">05</span> Código e características</a></li>
+
+      <li class="toc-group" role="presentation">Parte 3 — Selection Sort</li>
+      <li><a href="#selection"><span class="num">06</span> Ideia e exemplo</a></li>
+      <li><a href="#selection-codigo"><span class="num">07</span> Código e características</a></li>
+
+      <li class="toc-group" role="presentation">Parte 4 — Bubble Sort</li>
+      <li><a href="#bubble"><span class="num">08</span> Ideia e exemplo</a></li>
+      <li><a href="#bubble-codigo"><span class="num">09</span> Código e características</a></li>
+      <li><a href="#comparacao"><span class="num">10</span> Comparando os três algoritmos</a></li>
+
+      <li class="toc-group" role="presentation">Parte 5 (lab) — Prática</li>
+      <li><a href="#exercicios"><span class="num">11</span> Exercícios de laboratório</a></li>
+      <li><a href="#gabarito"><span class="num">12</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="motivacao">
+      <h2>Ordenar para encontrar depois</h2>
+      <p>Ordenar dados é fundamental, <strong>uma vez que teremos que encontrá-los depois</strong>. Pense na lista de chamada da turma, no dicionário, nos contatos do celular ou na tabela de classificação do campeonato: todos são úteis porque estão <strong>em ordem</strong>. Sem ordem, a única forma de encontrar alguma coisa é olhar item por item, do primeiro ao último.</p>
+      <p>Ordenar é tão comum que <strong>vários algoritmos</strong> foram propostos para isso, e eles <strong>precisam ser avaliados</strong>: todos chegam ao mesmo vetor ordenado, mas não com o mesmo custo.</p>
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Eficácia</div>
+          <p>O algoritmo <strong>resolve</strong> o problema? Ao final, o vetor está ordenado? É o mínimo que se espera de qualquer algoritmo.</p>
+          <p class="example">"funciona?"</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Eficiência</div>
+          <p><strong>Quanto custa</strong> resolver? Quanto tempo e quanta memória o algoritmo consome para chegar ao resultado?</p>
+          <p class="example">"funciona bem?"</p>
+        </div>
+      </div>
+      <p>Nesta primeira parte vamos estudar três algoritmos <strong>ineficientes, mas simples</strong>: <strong>Insertion Sort</strong>, <strong>Selection Sort</strong> e <strong>Bubble Sort</strong>. Eles são o ponto de partida para entender como se mede o custo de um algoritmo e por que existem algoritmos melhores, que veremos na Parte II junto com os métodos de pesquisa.</p>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="eficiencia">
+      <h2>Como avaliar a eficiência de um algoritmo</h2>
+      <p>Medir o tempo com um cronômetro não basta: o mesmo programa roda mais rápido em um computador novo do que em um antigo. Precisamos de uma medida que dependa <strong>do algoritmo</strong>, e não da máquina. Por isso avaliamos como o custo <strong>cresce</strong> em função do <strong>tamanho da entrada <code>n</code></strong>. Para ordenação, <code>n</code> é o número de elementos do vetor.</p>
+      <ul>
+        <li><strong>Complexidade de tempo</strong>: mede a quantidade de tempo que o algoritmo leva para ser executado com base no tamanho de entrada <code>n</code>. Na prática, <strong>contamos operações</strong> (comparações, trocas) em vez de segundos.</li>
+        <li><strong>Complexidade de espaço</strong>: avalia a quantidade de <strong>memória adicional</strong> que o algoritmo precisa para armazenar variáveis, estruturas de dados temporárias e outros elementos durante a execução.</li>
+      </ul>
+      <h3>Contando operações</h3>
+      <p>A função abaixo conta quantos pares <code>(i, j)</code>, com <code>i &lt; j</code>, estão <strong>fora de ordem</strong> em um vetor. Esses pares se chamam <strong>inversões</strong> e vão reaparecer mais adiante.</p>
+<pre><code><span class="tok-kw">int</span> conta_inversoes(<span class="tok-kw">int</span> v[], <span class="tok-kw">int</span> n) {
+    <span class="tok-kw">int</span> total = 0;
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; n - 1; i++)
+        <span class="tok-kw">for</span> (<span class="tok-kw">int</span> j = i + 1; j &lt; n; j++)
+            <span class="tok-kw">if</span> (v[i] &gt; v[j])        <span class="tok-comment">// quantas vezes esta linha executa?</span>
+                total++;
+    <span class="tok-kw">return</span> total;
+}</code></pre>
+      <p>Para <code>i = 0</code> o laço interno executa <code>n - 1</code> vezes; para <code>i = 1</code>, <code>n - 2</code> vezes; e assim até <code>i = n - 2</code>, que executa 1 vez. No total:</p>
+<pre><code>(n-1) + (n-2) + ... + 2 + 1  =  n(n-1)/2  ≈  n²/2</code></pre>
+      <p>Para <code>n = 1000</code> são 499.500 comparações. Se o vetor dobrar (<code>n = 2000</code>), são 1.999.000: <strong>quatro vezes mais</strong>. Esse é o comportamento típico de um algoritmo <strong>quadrático</strong>. Já a memória adicional é só a das variáveis <code>i</code>, <code>j</code> e <code>total</code>, que <strong>não depende de <code>n</code></strong>: espaço constante.</p>
+      <div class="callout">
+        <span class="callout-label">Guarde esta soma</span>
+        <p><code>1 + 2 + … + (n-1) = n(n-1)/2</code>. Ela aparece sempre que um laço interno percorre "o que sobrou" do vetor, e é a origem do <code>n²</code> nos três algoritmos desta unidade.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="big-o">
+      <h2>Notação Big-O</h2>
+      <p>A notação <strong>Big-O</strong> indica o <strong>limite superior</strong> do tempo de execução no <strong>pior caso</strong>, ou seja, o tempo (ou espaço) <strong>máximo</strong> que o algoritmo levará. Ela despreza constantes e termos menores: <code>n²/2 + n/2</code> é simplesmente <strong>O(n²)</strong>, porque para <code>n</code> grande é o <code>n²</code> que manda.</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Notação</th><th>Nome</th><th>Avaliação</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-step">O(1)</td><td>tempo/espaço constante</td><td>eficiente</td></tr>
+            <tr><td class="trace-step">O(log n)</td><td>logarítmico</td><td>eficiente</td></tr>
+            <tr><td class="trace-step">O(n)</td><td>tempo/espaço linear</td><td>médio</td></tr>
+            <tr><td class="trace-step">O(n log n)</td><td>linear-logarítmico</td><td>eficiente</td></tr>
+            <tr><td class="trace-step">O(n²)</td><td>tempo/espaço quadrático</td><td><strong>ineficiente</strong></td></tr>
+            <tr><td class="trace-step">O(2ⁿ) e O(n!)</td><td>exponencial e fatorial</td><td><strong>muito ineficiente</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="diagram growth" data-nmax="20">
+        <p class="g-title">Número de operações conforme n cresce</p>
+        <div class="legend-chips">
+          <span class="legend-chip"><span class="swatch sw-s1"></span>O(n)</span>
+          <span class="legend-chip"><span class="swatch sw-s2"></span>O(n log n)</span>
+          <span class="legend-chip"><span class="swatch sw-s3"></span>O(n²)</span>
+        </div>
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 540 310" role="img" aria-label="Curvas de n, n log n e n ao quadrado para n de 1 a 20. Em n = 20: n vale 20, n log n vale cerca de 86 e n ao quadrado vale 400.">
+<line class="g-grid" x1="64" y1="262.0" x2="470" y2="262.0"></line>
+<text class="g-tick" x="56" y="266.0" text-anchor="end">0</text>
+<line class="g-grid" x1="64" y1="203.0" x2="470" y2="203.0"></line>
+<text class="g-tick" x="56" y="207.0" text-anchor="end">100</text>
+<line class="g-grid" x1="64" y1="144.0" x2="470" y2="144.0"></line>
+<text class="g-tick" x="56" y="148.0" text-anchor="end">200</text>
+<line class="g-grid" x1="64" y1="85.0" x2="470" y2="85.0"></line>
+<text class="g-tick" x="56" y="89.0" text-anchor="end">300</text>
+<line class="g-grid" x1="64" y1="26.0" x2="470" y2="26.0"></line>
+<text class="g-tick" x="56" y="30.0" text-anchor="end">400</text>
+<text class="g-tick" x="64.0" y="280" text-anchor="middle">0</text>
+<text class="g-tick" x="165.5" y="280" text-anchor="middle">5</text>
+<text class="g-tick" x="267.0" y="280" text-anchor="middle">10</text>
+<text class="g-tick" x="368.5" y="280" text-anchor="middle">15</text>
+<text class="g-tick" x="470.0" y="280" text-anchor="middle">20</text>
+<line class="g-axis" x1="64" y1="262" x2="470" y2="262"></line>
+<path class="g-line s1" d="M84.3,261.4 L89.4,261.3 L94.5,261.1 L99.5,261.0 L104.6,260.8 L109.7,260.7 L114.8,260.5 L119.8,260.4 L124.9,260.2 L130.0,260.1 L135.1,259.9 L140.1,259.8 L145.2,259.6 L150.3,259.5 L155.4,259.3 L160.4,259.2 L165.5,259.1 L170.6,258.9 L175.7,258.8 L180.7,258.6 L185.8,258.5 L190.9,258.3 L196.0,258.2 L201.0,258.0 L206.1,257.9 L211.2,257.7 L216.2,257.6 L221.3,257.4 L226.4,257.3 L231.5,257.1 L236.5,257.0 L241.6,256.8 L246.7,256.7 L251.8,256.5 L256.9,256.4 L261.9,256.2 L267.0,256.1 L272.1,256.0 L277.1,255.8 L282.2,255.7 L287.3,255.5 L292.4,255.4 L297.4,255.2 L302.5,255.1 L307.6,254.9 L312.7,254.8 L317.8,254.6 L322.8,254.5 L327.9,254.3 L333.0,254.2 L338.1,254.0 L343.1,253.9 L348.2,253.7 L353.3,253.6 L358.3,253.4 L363.4,253.3 L368.5,253.2 L373.6,253.0 L378.7,252.9 L383.7,252.7 L388.8,252.6 L393.9,252.4 L398.9,252.3 L404.0,252.1 L409.1,252.0 L414.2,251.8 L419.2,251.7 L424.3,251.5 L429.4,251.4 L434.5,251.2 L439.6,251.1 L444.6,250.9 L449.7,250.8 L454.8,250.6 L459.8,250.5 L464.9,250.3 L470.0,250.2"></path>
+<path class="g-line s2" d="M84.3,262.0 L89.4,261.8 L94.5,261.5 L99.5,261.2 L104.6,260.8 L109.7,260.4 L114.8,260.1 L119.8,259.6 L124.9,259.2 L130.0,258.7 L135.1,258.3 L140.1,257.8 L145.2,257.3 L150.3,256.8 L155.4,256.2 L160.4,255.7 L165.5,255.2 L170.6,254.6 L175.7,254.0 L180.7,253.4 L185.8,252.8 L190.9,252.3 L196.0,251.6 L201.0,251.0 L206.1,250.4 L211.2,249.8 L216.2,249.1 L221.3,248.5 L226.4,247.8 L231.5,247.2 L236.5,246.5 L241.6,245.8 L246.7,245.2 L251.8,244.5 L256.9,243.8 L261.9,243.1 L267.0,242.4 L272.1,241.7 L277.1,241.0 L282.2,240.3 L287.3,239.5 L292.4,238.8 L297.4,238.1 L302.5,237.4 L307.6,236.6 L312.7,235.9 L317.8,235.1 L322.8,234.4 L327.9,233.6 L333.0,232.9 L338.1,232.1 L343.1,231.3 L348.2,230.6 L353.3,229.8 L358.3,229.0 L363.4,228.2 L368.5,227.4 L373.6,226.6 L378.7,225.8 L383.7,225.0 L388.8,224.2 L393.9,223.4 L398.9,222.6 L404.0,221.8 L409.1,221.0 L414.2,220.2 L419.2,219.4 L424.3,218.5 L429.4,217.7 L434.5,216.9 L439.6,216.1 L444.6,215.2 L449.7,214.4 L454.8,213.5 L459.8,212.7 L464.9,211.9 L470.0,211.0"></path>
+<path class="g-line s3" d="M84.3,261.4 L89.4,261.1 L94.5,260.7 L99.5,260.2 L104.6,259.6 L109.7,259.0 L114.8,258.3 L119.8,257.5 L124.9,256.7 L130.0,255.8 L135.1,254.8 L140.1,253.7 L145.2,252.6 L150.3,251.3 L155.4,250.1 L160.4,248.7 L165.5,247.2 L170.6,245.7 L175.7,244.2 L180.7,242.5 L185.8,240.8 L190.9,239.0 L196.0,237.1 L201.0,235.1 L206.1,233.1 L211.2,231.0 L216.2,228.8 L221.3,226.6 L226.4,224.2 L231.5,221.8 L236.5,219.4 L241.6,216.8 L246.7,214.2 L251.8,211.5 L256.9,208.8 L261.9,205.9 L267.0,203.0 L272.1,200.0 L277.1,197.0 L282.2,193.8 L287.3,190.6 L292.4,187.3 L297.4,184.0 L302.5,180.5 L307.6,177.0 L312.7,173.5 L317.8,169.8 L322.8,166.1 L327.9,162.3 L333.0,158.4 L338.1,154.5 L343.1,150.5 L348.2,146.4 L353.3,142.2 L358.3,138.0 L363.4,133.6 L368.5,129.2 L373.6,124.8 L378.7,120.3 L383.7,115.6 L388.8,111.0 L393.9,106.2 L398.9,101.4 L404.0,96.5 L409.1,91.5 L414.2,86.4 L419.2,81.3 L424.3,76.1 L429.4,70.8 L434.5,65.5 L439.6,60.1 L444.6,54.6 L449.7,49.0 L454.8,43.4 L459.8,37.7 L464.9,31.9 L470.0,26.0"></path>
+<text class="g-lab" x="478.0" y="254.2">n</text>
+<text class="g-lab" x="478.0" y="215.0">n log n</text>
+<text class="g-lab" x="478.0" y="30.0">n²</text>
+<text class="g-tick" x="267.0" y="298" text-anchor="middle">n (tamanho da entrada)</text>
+<text class="g-tick" x="14" y="144.0" text-anchor="middle" transform="rotate(-90 14 144.0)">operações</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> Para n = 20, n² já vale 400, quase cinco vezes n log n (≈ 86) e vinte vezes n. Quanto maior o n, maior a distância entre as curvas. Os valores exatos estão na tabela abaixo.</figcaption>
+      </figure>
+      <p>Em números, para alguns valores de <code>n</code>:</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>n</th><th>log₂ n</th><th>n</th><th>n log₂ n</th><th>n²</th><th>2ⁿ</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">10</td><td>≈ 3</td><td>10</td><td>≈ 33</td><td>100</td><td>1.024</td></tr>
+            <tr><td class="trace-desc">100</td><td>≈ 7</td><td>100</td><td>≈ 664</td><td>10.000</td><td>≈ 1,3 × 10³⁰</td></tr>
+            <tr><td class="trace-desc">1.000</td><td>≈ 10</td><td>1.000</td><td>≈ 9.966</td><td>1.000.000</td><td>302 dígitos</td></tr>
+            <tr><td class="trace-desc">1.000.000</td><td>≈ 20</td><td>1.000.000</td><td>≈ 2 × 10⁷</td><td class="trace-changed">10¹²</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Com um milhão de elementos, um algoritmo O(n log n) faz cerca de 20 milhões de operações; um O(n²) faz <strong>um trilhão</strong>.</p>
+      <h3>Pior, melhor e caso médio: O, Ω e Θ</h3>
+      <p>O custo de um algoritmo de ordenação depende também <strong>de como os dados chegam</strong>: já ordenados, em ordem inversa ou embaralhados. Por isso descrevemos três situações:</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Símbolo</th><th>Lê-se</th><th>Uso neste roteiro</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-step">O(f(n))</td><td>"O grande"</td><td><strong>pior caso</strong>: o algoritmo nunca é pior que isso</td></tr>
+            <tr><td class="trace-step">Ω(f(n))</td><td>"ômega"</td><td><strong>melhor caso</strong>: o algoritmo nunca é melhor que isso</td></tr>
+            <tr><td class="trace-step">Θ(f(n))</td><td>"teta"</td><td><strong>caso médio</strong>: o crescimento para entradas típicas (aleatórias)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="quiz-print" id="quiz-parte1">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 1 — Avaliando algoritmos <span>— confira as respostas no Gabarito, seção 12</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Um algoritmo <strong>eficaz</strong> é aquele que:</p>
+            <ol class="qp-options">
+              <li>termina em menos de um segundo</li>
+              <li>resolve corretamente o problema</li>
+              <li>usa pouca memória</li>
+              <li>é O(1)</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Um algoritmo O(n²) leva 2 segundos para ordenar 10.000 elementos. Quanto tempo, aproximadamente, levará para 20.000?</p>
+            <ol class="qp-options">
+              <li>2 segundos</li>
+              <li>4 segundos</li>
+              <li>8 segundos</li>
+              <li>16 segundos</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual das complexidades abaixo é a <strong>mais eficiente</strong> para <code>n</code> grande?</p>
+            <ol class="qp-options">
+              <li>O(n²)</li>
+              <li>O(n)</li>
+              <li>O(n log n)</li>
+              <li>O(2ⁿ)</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="insertion">
+      <h2>Insertion Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Ordenação por inserção</p>
+      <ol>
+        <li>Percorrer o vetor da <strong>esquerda para a direita</strong>;</li>
+        <li>Para cada elemento, compará-lo com os elementos <strong>à sua esquerda</strong>;</li>
+        <li>Caso o elemento à esquerda seja <strong>maior</strong>, trocar os dois elementos de lugar;</li>
+        <li>Repetir o processo até que o elemento seja <strong>menor</strong> que o elemento à sua esquerda <strong>ou</strong> que chegue à <strong>primeira posição</strong> do vetor.</li>
+      </ol>
+      <p>É o que fazemos ao organizar <strong>cartas de baralho na mão</strong>: pegamos a carta seguinte e a deslizamos para a esquerda até encontrar o lugar dela entre as que já estão ordenadas. A parte ordenada cresce <strong>da esquerda para a direita</strong>, mas um elemento ali ainda pode ser empurrado para dar lugar a outro.</p>
+      <h3>Exemplo: <code>6 5 3 1 8 7 2 4</code></h3>
+      <p>Estado do vetor <strong>ao final</strong> de cada passada. Em destaque, a parte já ordenada.</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada (i)</th><th>key</th><th>Vetor após a passada</th><th>Comparações</th><th>Deslocamentos</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td><span class="vec"><span class="vc s">6</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>—</td><td>—</td></tr>
+            <tr><td class="trace-desc">1</td><td><code>5</code></td><td><span class="vec"><span class="vc s">5</span><span class="vc s">6</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>1</td><td>1</td></tr>
+            <tr><td class="trace-desc">2</td><td><code>3</code></td><td><span class="vec"><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>2</td><td>2</td></tr>
+            <tr><td class="trace-desc">3</td><td><code>1</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>3</td><td>3</td></tr>
+            <tr><td class="trace-desc">4</td><td><code>8</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>1</td><td>0</td></tr>
+            <tr><td class="trace-desc">5</td><td><code>7</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc">2</span><span class="vc">4</span></span></td><td>2</td><td>1</td></tr>
+            <tr><td class="trace-desc">6</td><td><code>2</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc">4</span></span></td><td>6</td><td>5</td></tr>
+            <tr><td class="trace-desc">7</td><td><code>4</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>5</td><td>4</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td></td><td><strong>20</strong></td><td><strong>16</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Observe a passada 4: o <code>8</code> já é maior que todos à sua esquerda, então basta <strong>uma</strong> comparação e nada se move. Já o <code>2</code>, na passada 6, precisa atravessar quase toda a parte ordenada.</p>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="insertion-codigo">
+      <h2>Insertion Sort: código e características</h2>
+<pre><code><span class="tok-kw">void</span> insertion_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> t) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 1; i &lt; t; i++) {
+        <span class="tok-kw">int</span> j = i;
+        <span class="tok-kw">int</span> key = vet[i];
+        <span class="tok-kw">while</span> (j &gt; 0 &amp;&amp; vet[j-1] &gt; key) {
+            vet[j] = vet[j-1];
+            j--;
+        }
+        vet[j] = key;
+    }
+}</code></pre>
+      <ul>
+        <li>O laço externo começa em <code>i = 1</code>: um vetor de <strong>um</strong> elemento (<code>vet[0]</code>) já está ordenado.</li>
+        <li><code>key</code> guarda o elemento que está sendo inserido. Em vez de fazer uma troca completa a cada passo, o código <strong>desloca</strong> os maiores uma posição para a direita (<code>vet[j] = vet[j-1]</code>) e só no final coloca <code>key</code> na vaga que sobrou. O efeito é o mesmo da ideia geral ("trocar com o da esquerda"), com menos atribuições.</li>
+        <li>A ordem das condições no <code>while</code> importa: <code>j &gt; 0</code> é testado <strong>antes</strong> de <code>vet[j-1]</code>. Quando <code>j</code> chega a <code>0</code>, o <code>&amp;&amp;</code> para na primeira condição e <code>vet[-1]</code> nunca é acessado.</li>
+      </ul>
+      <h3>Características</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Caso</th><th>Complexidade</th><th>Quando acontece</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td class="trace-step">O(n²)</td><td>vetor em ordem <strong>decrescente</strong>: cada <code>key</code> percorre toda a parte ordenada</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-step">Ω(n)</td><td>vetor <strong>já ordenado</strong>: 1 comparação por passada, <code>n - 1</code> no total</td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td class="trace-step">Θ(n²)</td><td>vetor aleatório: cada <code>key</code> anda, em média, metade da parte ordenada (≈ n²/4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: O(1). Usa apenas <code>i</code>, <code>j</code> e <code>key</code>, qualquer que seja <code>n</code>: ordena <strong>no próprio vetor</strong>.</li>
+        <li>É <strong>adaptativo</strong>: quanto mais ordenado o vetor já estiver, mais rápido ele termina. Por isso é ótimo para vetores <strong>quase ordenados</strong>.</li>
+      </ul>
+      <div class="quiz-print" id="quiz-parte2">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 2 — Insertion Sort <span>— confira as respostas no Gabarito, seção 12</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">No Insertion Sort, por que a condição do <code>while</code> é <code>j &gt; 0 &amp;&amp; vet[j-1] &gt; key</code>, nessa ordem?</p>
+            <ol class="qp-options">
+              <li>Porque <code>&amp;&amp;</code> é mais rápido que <code>||</code></li>
+              <li>Para que <code>vet[j-1]</code> não seja acessado quando <code>j</code> vale 0</li>
+              <li>Para garantir que o vetor fique em ordem decrescente</li>
+              <li>A ordem não faz diferença</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Quantas comparações o Insertion Sort faz para um vetor <strong>já ordenado</strong> de 100 elementos?</p>
+            <ol class="qp-options">
+              <li>100</li>
+              <li>99</li>
+              <li>4.950</li>
+              <li>10.000</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="selection">
+      <h2>Selection Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Ordenação por seleção</p>
+      <ol>
+        <li>Para cada índice do vetor, da esquerda para a direita, faça:
+          <ol>
+            <li>Encontre o <strong>menor</strong> elemento do subvetor à direita deste índice (a partir dele);</li>
+            <li><strong>Troque</strong> o elemento do índice com o menor elemento encontrado.</li>
+          </ol>
+        </li>
+      </ol>
+      <p>A cada passada, um elemento vai <strong>direto para sua posição definitiva</strong>: na passada 1 o menor de todos vai para a posição 0, na passada 2 o segundo menor vai para a posição 1, e assim por diante.</p>
+      <h3>Exemplo: <code>8 5 2 6 9 3 1 4 0 7</code></h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Menor encontrado</th><th>Vetor após a troca</th><th>Comparações</th><th>Troca efetiva?</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td><span class="vec"><span class="vc">8</span><span class="vc">5</span><span class="vc">2</span><span class="vc">6</span><span class="vc">9</span><span class="vc">3</span><span class="vc">1</span><span class="vc">4</span><span class="vc">0</span><span class="vc">7</span></span></td><td>—</td><td>—</td></tr>
+            <tr><td class="trace-desc">1 (i = 0)</td><td>0 (pos. 8)</td><td><span class="vec"><span class="vc s">0</span><span class="vc">5</span><span class="vc">2</span><span class="vc">6</span><span class="vc">9</span><span class="vc">3</span><span class="vc">1</span><span class="vc">4</span><span class="vc">8</span><span class="vc">7</span></span></td><td>10</td><td>sim</td></tr>
+            <tr><td class="trace-desc">2 (i = 1)</td><td>1 (pos. 6)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc">2</span><span class="vc">6</span><span class="vc">9</span><span class="vc">3</span><span class="vc">5</span><span class="vc">4</span><span class="vc">8</span><span class="vc">7</span></span></td><td>9</td><td>sim</td></tr>
+            <tr><td class="trace-desc">3 (i = 2)</td><td>2 (no lugar)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc">6</span><span class="vc">9</span><span class="vc">3</span><span class="vc">5</span><span class="vc">4</span><span class="vc">8</span><span class="vc">7</span></span></td><td>8</td><td>não</td></tr>
+            <tr><td class="trace-desc">4 (i = 3)</td><td>3 (pos. 5)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc">9</span><span class="vc">6</span><span class="vc">5</span><span class="vc">4</span><span class="vc">8</span><span class="vc">7</span></span></td><td>7</td><td>sim</td></tr>
+            <tr><td class="trace-desc">5 (i = 4)</td><td>4 (pos. 7)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc">6</span><span class="vc">5</span><span class="vc">9</span><span class="vc">8</span><span class="vc">7</span></span></td><td>6</td><td>sim</td></tr>
+            <tr><td class="trace-desc">6 (i = 5)</td><td>5 (pos. 6)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc">6</span><span class="vc">9</span><span class="vc">8</span><span class="vc">7</span></span></td><td>5</td><td>sim</td></tr>
+            <tr><td class="trace-desc">7 (i = 6)</td><td>6 (no lugar)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc">9</span><span class="vc">8</span><span class="vc">7</span></span></td><td>4</td><td>não</td></tr>
+            <tr><td class="trace-desc">8 (i = 7)</td><td>7 (pos. 9)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc">8</span><span class="vc">9</span></span></td><td>3</td><td>sim</td></tr>
+            <tr><td class="trace-desc">9 (i = 8)</td><td>8 (no lugar)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc">9</span></span></td><td>2</td><td>não</td></tr>
+            <tr><td class="trace-desc">10 (i = 9)</td><td>9 (no lugar)</td><td><span class="vec"><span class="vc s">0</span><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc s">9</span></span></td><td>1</td><td>não</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td></td><td><strong>55</strong></td><td><strong>6</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O vetor fica ordenado na passada 8, mas o algoritmo <strong>não sabe disso</strong>: continua procurando o menor em todas as passadas restantes.</p>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="selection-codigo">
+      <h2>Selection Sort: código e características</h2>
+<pre><code><span class="tok-kw">void</span> selection_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> t) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = 0; i &lt; t; i++) {
+        <span class="tok-kw">int</span> key = i;
+        <span class="tok-kw">for</span> (<span class="tok-kw">int</span> j = i; j &lt; t; j++) {
+            <span class="tok-kw">if</span> (vet[j] &lt; vet[key])
+                key = j;
+        }
+        <span class="tok-kw">int</span> aux = vet[i];
+        vet[i] = vet[key];
+        vet[key] = aux;
+    }
+}</code></pre>
+      <ul>
+        <li>Aqui <code>key</code> não é um valor, é um <strong>índice</strong>: a posição do menor elemento encontrado até agora.</li>
+        <li>O laço interno <strong>sempre</strong> percorre todo o subvetor <code>vet[i..t-1]</code>, não importa como os dados estejam. O número de comparações é sempre o mesmo para um dado <code>n</code>.</li>
+        <li>Há <strong>no máximo uma troca por passada</strong>: no total, até <code>n</code> trocas. Nenhum dos outros dois algoritmos move tão pouco os dados.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">Melhorando o código</span>
+        <p>Duas mudanças pequenas eliminam trabalho inútil sem alterar o resultado: o laço interno pode começar em <code>j = i + 1</code>, porque comparar <code>vet[i]</code> com ele mesmo nunca muda <code>key</code>; e o laço externo pode ir só até <code>i &lt; t - 1</code>, porque quando sobra um único elemento ele já está no lugar. Com as duas, as comparações caem de <code>n(n+1)/2</code> para <code>n(n-1)/2</code>. Também é comum só trocar <code>if (key != i)</code>.</p>
+      </div>
+      <h3>Características</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Caso</th><th>Complexidade</th><th>Quando acontece</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td class="trace-step">O(n²)</td><td>qualquer vetor</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-step">Ω(n²)</td><td>mesmo <strong>já ordenado</strong>, procura o menor em todo o subvetor restante</td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td class="trace-step">Θ(n²)</td><td>qualquer vetor</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: O(1).</li>
+        <li><strong>Não</strong> é adaptativo: a ordem dos dados não muda o número de comparações.</li>
+        <li>Vantagem: faz apenas <strong>O(n) trocas</strong>. É útil quando <strong>mover</strong> dados é bem mais caro do que comparar (registros grandes, memória flash).</li>
+      </ul>
+      <div class="quiz-print" id="quiz-parte3">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 3 — Selection Sort <span>— confira as respostas no Gabarito, seção 12</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">No código do Selection Sort, o que a variável <code>key</code> guarda?</p>
+            <ol class="qp-options">
+              <li>O menor valor do vetor</li>
+              <li>O índice do menor elemento encontrado até agora</li>
+              <li>O número de trocas</li>
+              <li>O valor que está sendo inserido</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual algoritmo faz <strong>o mesmo número de comparações</strong> com um vetor já ordenado e com um vetor aleatório do mesmo tamanho?</p>
+            <ol class="qp-options">
+              <li>Insertion Sort</li>
+              <li>Bubble Sort com <code>trocou</code></li>
+              <li>Selection Sort</li>
+              <li>Nenhum deles</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="bubble">
+      <h2>Bubble Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Ordenação por troca</p>
+      <ol>
+        <li>Para cada índice do vetor, da <strong>direita para a esquerda</strong>, faça:
+          <ol>
+            <li>A partir do índice <code>i = 0</code>, compare os elementos <strong>vizinhos</strong> <code>(i, i+1)</code>;</li>
+            <li>Caso o elemento em <code>i</code> seja <strong>maior</strong> que o elemento em <code>i+1</code>, <strong>trocar</strong>.</li>
+          </ol>
+        </li>
+      </ol>
+      <p>A cada passada, o maior elemento ainda fora do lugar é empurrado para a direita, como uma <strong>bolha</strong> que sobe, até parar no fim da parte não ordenada. A parte ordenada cresce <strong>da direita para a esquerda</strong>.</p>
+      <h3>Exemplo: <code>6 5 3 1 8 7 2 4</code></h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Comparações</th><th>Vetor após a passada</th><th>Trocas</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td><span class="vec"><span class="vc">6</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>—</td></tr>
+            <tr><td class="trace-desc">1 (i = 7)</td><td>7</td><td><span class="vec"><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">6</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span><span class="vc s">8</span></span></td><td>6</td></tr>
+            <tr><td class="trace-desc">2 (i = 6)</td><td>6</td><td><span class="vec"><span class="vc">3</span><span class="vc">1</span><span class="vc">5</span><span class="vc">6</span><span class="vc">2</span><span class="vc">4</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>4</td></tr>
+            <tr><td class="trace-desc">3 (i = 5)</td><td>5</td><td><span class="vec"><span class="vc">1</span><span class="vc">3</span><span class="vc">5</span><span class="vc">2</span><span class="vc">4</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>3</td></tr>
+            <tr><td class="trace-desc">4 (i = 4)</td><td>4</td><td><span class="vec"><span class="vc">1</span><span class="vc">3</span><span class="vc">2</span><span class="vc">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>2</td></tr>
+            <tr><td class="trace-desc">5 (i = 3)</td><td>3</td><td><span class="vec"><span class="vc">1</span><span class="vc">2</span><span class="vc">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">6 (i = 2)</td><td>2</td><td><span class="vec"><span class="vc">1</span><span class="vc">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>0</td></tr>
+            <tr><td class="trace-desc">7 (i = 1)</td><td>1</td><td><span class="vec"><span class="vc">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>0</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td><strong>28</strong></td><td></td><td><strong>16</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O Bubble fez exatamente <strong>16 trocas</strong>, o mesmo número de deslocamentos do Insertion Sort para o mesmo vetor. Não é coincidência: o vetor <code>6 5 3 1 8 7 2 4</code> tem <strong>16 inversões</strong> (os pares fora de ordem contados por <code>conta_inversoes</code>), e cada troca de vizinhos desfaz <strong>exatamente uma</strong> inversão.</p>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="bubble-codigo">
+      <h2>Bubble Sort: código e características</h2>
+<pre><code><span class="tok-kw">void</span> bubble_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> t) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = t-1; i &gt; 0; i--) {
+        <span class="tok-kw">for</span> (<span class="tok-kw">int</span> j = 0; j &lt; i; j++) {
+            <span class="tok-kw">if</span> (vet[j] &gt; vet[j+1]) {
+                <span class="tok-kw">int</span> aux = vet[j];
+                vet[j] = vet[j+1];
+                vet[j+1] = aux;
+            }
+        }
+    }
+}</code></pre>
+      <ul>
+        <li><code>i</code> marca o <strong>fim</strong> da parte não ordenada. Depois de cada passada, <code>vet[i]</code> está na posição definitiva, por isso o laço interno vai só até <code>j &lt; i</code>.</li>
+        <li>No exemplo, o vetor já estava ordenado após a passada 5, mas esse código faz <strong>todas</strong> as <code>n - 1</code> passadas: são sempre <code>n(n-1)/2</code> comparações.</li>
+      </ul>
+      <h3>Parando mais cedo: a versão com <code>trocou</code></h3>
+      <p>Se uma passada inteira acontecer <strong>sem nenhuma troca</strong>, todos os vizinhos estão em ordem e o vetor está ordenado. Basta um indicador para parar:</p>
+<pre><code><span class="tok-kw">void</span> bubble_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> t) {
+    <span class="tok-kw">for</span> (<span class="tok-kw">int</span> i = t-1; i &gt; 0; i--) {
+        <span class="tok-kw">int</span> trocou = 0;
+        <span class="tok-kw">for</span> (<span class="tok-kw">int</span> j = 0; j &lt; i; j++) {
+            <span class="tok-kw">if</span> (vet[j] &gt; vet[j+1]) {
+                <span class="tok-kw">int</span> aux = vet[j];
+                vet[j] = vet[j+1];
+                vet[j+1] = aux;
+                trocou = 1;
+            }
+        }
+        <span class="tok-kw">if</span> (!trocou)        <span class="tok-comment">// passada sem trocas: já está ordenado</span>
+            <span class="tok-kw">break</span>;
+    }
+}</code></pre>
+      <p>Com um vetor <strong>já ordenado</strong>, essa versão faz uma única passada de <code>n - 1</code> comparações e termina. É ela que tem melhor caso <strong>Ω(n)</strong>. No exemplo, pararia na passada 6, a primeira sem trocas.</p>
+      <h3>Características</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Caso</th><th>Complexidade</th><th>Quando acontece</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td class="trace-step">O(n²)</td><td>vetor em ordem <strong>decrescente</strong>: toda comparação gera uma troca</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-step">Ω(n)</td><td>vetor <strong>já ordenado</strong>, na versão com <code>trocou</code></td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td class="trace-step">Θ(n²)</td><td>vetor aleatório</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: O(1).</li>
+        <li>É o mais simples de escrever, mas costuma ser o <strong>mais lento</strong> dos três na prática: faz tantas trocas quanto o Insertion faz deslocamentos, e cada troca custa <strong>3 atribuições</strong>.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section class="chapter" id="comparacao">
+      <h2>Comparando os três algoritmos</h2>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th></th><th>Insertion</th><th>Selection</th><th>Bubble</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Ideia</td><td>insere o próximo no lugar certo</td><td>seleciona o menor e põe na frente</td><td>troca vizinhos fora de ordem</td></tr>
+            <tr><td class="trace-desc">Parte ordenada</td><td>à esquerda, ainda muda</td><td>à esquerda, definitiva</td><td>à direita, definitiva</td></tr>
+            <tr><td class="trace-desc">Pior caso</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-changed">Ω(n)</td><td>Ω(n²)</td><td class="trace-changed">Ω(n) com <code>trocou</code></td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(n²)</td></tr>
+            <tr><td class="trace-desc">Trocas no pior caso</td><td>O(n²) deslocamentos</td><td class="trace-changed">O(n)</td><td>O(n²)</td></tr>
+            <tr><td class="trace-desc">Adaptativo?</td><td>sim</td><td>não</td><td>sim, com <code>trocou</code></td></tr>
+            <tr><td class="trace-desc">Espaço adicional</td><td>O(1)</td><td>O(1)</td><td>O(1)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Os três são O(n²): <strong>dobrar <code>n</code> quadruplica o tempo</strong>. Para alguns milhares de elementos isso é aceitável; para milhões, não. Na Parte II veremos algoritmos O(n log n) e os métodos de <strong>pesquisa</strong> que tiram proveito de um vetor ordenado.</p>
+      <div class="quiz-print" id="quiz-parte4">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 4 — Bubble Sort e comparação <span>— confira as respostas no Gabarito, seção 12</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Após a <strong>primeira passada</strong> do Bubble Sort sobre <code>4 2 7 1 3</code>, o vetor fica:</p>
+            <ol class="qp-options">
+              <li><code>1 4 2 7 3</code></li>
+              <li><code>2 4 1 3 7</code></li>
+              <li><code>2 4 7 1 3</code></li>
+              <li><code>1 2 3 4 7</code></li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Você precisa reordenar, todo dia, uma lista que <strong>já está quase ordenada</strong> (só alguns itens novos no final). Qual algoritmo é a melhor escolha?</p>
+            <ol class="qp-options">
+              <li>Insertion Sort</li>
+              <li>Selection Sort</li>
+              <li>Bubble Sort sem <code>trocou</code></li>
+              <li>Tanto faz, todos são O(n²)</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="chapter" id="exercicios">
+      <h2>Exercícios de laboratório</h2>
+      <p>Use sempre as versões das funções apresentadas neste roteiro. Para testar, escreva <code>void imprime(int v[], int n)</code> e um <code>main</code> que chame cada algoritmo sobre uma <strong>cópia</strong> do vetor original. Sem a cópia, o segundo algoritmo recebe o vetor já ordenado pelo primeiro.</p>
+      <h3>Rastreando</h3>
+      <p><strong>1. Teste de mesa.</strong> Faça à mão, sem rodar o programa, a ordenação de <code>{6, 3, 8, 1, 5}</code> pelos três algoritmos. Para cada passada, anote o vetor, o número de <strong>comparações</strong> e o número de <strong>trocas</strong> (no Insertion, os <strong>deslocamentos</strong> <code>vet[j] = vet[j-1]</code>; no Selection, só as trocas em que <code>key != i</code>). Depois confira no programa.</p>
+      <p><strong>2. Passo a passo.</strong> Altere as três funções para que, ao final de cada passada, imprimam <code>passada k: </code> seguido do vetor. Rode com os vetores dos exemplos deste roteiro e compare com as tabelas.</p>
+      <p><strong>3. Ordem decrescente.</strong> Faça as alterações mínimas nas três funções para que ordenem em ordem <strong>decrescente</strong>. Quantos caracteres você precisou mudar em cada uma?</p>
+      <h3>Medindo</h3>
+      <p><strong>4. Contando o trabalho.</strong> Declare as variáveis globais <code>long comparacoes, trocas;</code> e incremente-as nos pontos certos de cada algoritmo. Para <code>n = 1000</code>, gere três vetores: <strong>crescente</strong> (<code>v[i] = i</code>), <strong>decrescente</strong> (<code>v[i] = n - i</code>) e <strong>aleatório</strong> (<code>v[i] = rand() % 10000</code>, com <code>srand(42)</code> para todos obterem os mesmos números). Preencha a tabela e compare com <code>n(n-1)/2 = 499.500</code>:</p>
+      <div class="trace-wrap">
+        <table class="trace-table fill-table">
+          <thead><tr><th>Algoritmo</th><th>Crescente<br>comp. / trocas</th><th>Aleatório<br>comp. / trocas</th><th>Decrescente<br>comp. / trocas</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Insertion</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Selection</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Bubble</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Bubble com <code>trocou</code></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>5. Cronometrando.</strong> Use <code>clock()</code>, de <code>&lt;time.h&gt;</code>, para medir o tempo de cada algoritmo com vetores aleatórios de tamanho 1000, 2000, 4000, 8000, 16000 e 32000, alocados com <code>malloc</code> (Unidade IV):</p>
+<pre><code><span class="tok-kw">clock_t</span> inicio = clock();
+insertion_sort(v, n);
+<span class="tok-kw">clock_t</span> fim = clock();
+<span class="tok-kw">double</span> ms = 1000.0 * (fim - inicio) / CLOCKS_PER_SEC;</code></pre>
+      <p>Para cada tamanho, divida o tempo pelo tempo do tamanho anterior. A razão se aproxima de qual valor? Isso confirma O(n²)? Qual dos três foi o mais rápido? Grave os resultados em <code>resultados.csv</code> (Unidade VI) e faça um gráfico tempo × n na planilha.</p>
+      <h3>Aplicando</h3>
+      <p><strong>6. Ordenando structs.</strong> Usando a struct <code>Aluno</code> (RA, nome, nota) da Unidade V, adapte o Insertion Sort para ordenar um vetor de alunos: (a) pela nota, da maior para a menor; (b) pelo nome, em ordem alfabética, usando <code>strcmp</code> (Unidade II).</p>
+      <p><strong>7. Estabilidade.</strong> Um algoritmo é <strong>estável</strong> quando elementos com chaves iguais mantêm a ordem relativa original. Ordene pela nota o vetor <code>{ {"Ana", 7}, {"Bia", 5}, {"Caio", 7}, {"Davi", 5} }</code> com os três algoritmos. Em quais deles Ana continua antes de Caio e Bia antes de Davi? Explique por que o Selection Sort pode trocar essa ordem.</p>
+      <h3>8. Desafio: arquivo ordenado</h3>
+      <p>Leia um arquivo <code>alunos.csv</code> (<code>RA;Nome;Nota</code>) para um vetor de structs, ordene-o pelo critério escolhido pelo usuário (RA, nome ou nota; crescente ou decrescente) e grave <code>alunos_ordenados.csv</code>. Em seguida, acrescente um aluno novo no final do vetor e reordene: qual dos três algoritmos faz menos comparações nesse caso? Por quê?</p>
+      <h3>Resumo da unidade</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Conceito</th><th>Resumo</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Eficácia</td><td>o algoritmo resolve o problema</td></tr>
+            <tr><td class="trace-desc">Eficiência</td><td>quanto tempo e memória custa resolver</td></tr>
+            <tr><td class="trace-desc">Complexidade de tempo</td><td>crescimento do número de operações em função de <code>n</code></td></tr>
+            <tr><td class="trace-desc">Complexidade de espaço</td><td>memória <strong>adicional</strong> em função de <code>n</code></td></tr>
+            <tr><td class="trace-desc">O / Ω / Θ</td><td>pior caso / melhor caso / caso médio</td></tr>
+            <tr><td class="trace-desc">Insertion Sort</td><td>insere <code>key</code> na parte ordenada à esquerda · O(n²), Ω(n), Θ(n²)</td></tr>
+            <tr><td class="trace-desc">Selection Sort</td><td>troca <code>vet[i]</code> com o menor de <code>vet[i..t-1]</code> · O(n²), Ω(n²), Θ(n²) · só O(n) trocas</td></tr>
+            <tr><td class="trace-desc">Bubble Sort</td><td>troca vizinhos fora de ordem · O(n²), Ω(n) com <code>trocou</code>, Θ(n²)</td></tr>
+            <tr><td class="trace-desc">1 + 2 + … + (n-1)</td><td><code>n(n-1)/2 ≈ n²/2</code></td></tr>
+            <tr><td class="trace-desc">O(n²) na prática</td><td>dobrar <code>n</code> ⇒ quadruplicar o tempo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada parte, com a justificativa da alternativa correta, e a resposta do teste de mesa do exercício 1.</p>
+
+      <div class="gabarito-group">
+        <h3>Parte 1 — Avaliando algoritmos</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) resolve corretamente o problema</span><span class="gab-explain">— Eficácia é resolver o problema: o vetor termina ordenado. Tempo e memória são questões de eficiência.</span></li>
+          <li><span class="gab-answer">2. c) 8 segundos</span><span class="gab-explain">— Dobrar n em um algoritmo quadrático multiplica o tempo por 2² = 4: 2 s × 4 = 8 s.</span></li>
+          <li><span class="gab-answer">3. b) O(n)</span><span class="gab-explain">— Entre as opções, O(n) cresce mais devagar: n &lt; n log n &lt; n² &lt; 2ⁿ para n grande.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 2 — Insertion Sort</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Para que vet[j-1] não seja acessado quando j vale 0</span><span class="gab-explain">— O &amp;&amp; avalia da esquerda para a direita e para no primeiro falso. Com j == 0, vet[j-1] seria vet[-1], fora do vetor.</span></li>
+          <li><span class="gab-answer">2. b) 99</span><span class="gab-explain">— São 99 passadas (i de 1 a 99) e, em cada uma, o while falha na primeira comparação: n − 1 = 99. Esse é o melhor caso Ω(n).</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 3 — Selection Sort</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) O índice do menor elemento encontrado até agora</span><span class="gab-explain">— key começa em i e é atualizada para j sempre que vet[j] &lt; vet[key]: é uma posição, não um valor.</span></li>
+          <li><span class="gab-answer">2. c) Selection Sort</span><span class="gab-explain">— O laço interno do Selection sempre percorre todo o subvetor restante para ter certeza de qual é o menor, independentemente da ordem dos dados.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 4 — Bubble Sort e comparação</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) 2 4 1 3 7</span><span class="gab-explain">— (4,2) troca → 2 4 7 1 3; (4,7) não; (7,1) troca → 2 4 1 7 3; (7,3) troca → 2 4 1 3 7. O maior (7) chegou ao fim.</span></li>
+          <li><span class="gab-answer">2. a) Insertion Sort</span><span class="gab-explain">— O Insertion é adaptativo: os itens já ordenados custam 1 comparação cada, e só os novos andam para a esquerda. O Selection e o Bubble sem trocou fazem sempre ≈ n²/2 comparações.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Exercício 1 — teste de mesa de <code>{6, 3, 8, 1, 5}</code></h3>
+        <p><strong>Insertion Sort</strong></p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Vetor</th><th>Comparações</th><th>Deslocamentos</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">1</td><td><span class="vec"><span class="vc s">3</span><span class="vc s">6</span><span class="vc">8</span><span class="vc">1</span><span class="vc">5</span></span></td><td>1</td><td>1</td></tr>
+            <tr><td class="trace-desc">2</td><td><span class="vec"><span class="vc s">3</span><span class="vc s">6</span><span class="vc s">8</span><span class="vc">1</span><span class="vc">5</span></span></td><td>1</td><td>0</td></tr>
+            <tr><td class="trace-desc">3</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">6</span><span class="vc s">8</span><span class="vc">5</span></span></td><td>3</td><td>3</td></tr>
+            <tr><td class="trace-desc">4</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">8</span></span></td><td>3</td><td>2</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td><strong>8</strong></td><td><strong>6</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p><strong>Selection Sort</strong></p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Vetor</th><th>Comparações</th><th>Trocas efetivas</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">1</td><td><span class="vec"><span class="vc s">1</span><span class="vc">3</span><span class="vc">8</span><span class="vc">6</span><span class="vc">5</span></span></td><td>5</td><td>1</td></tr>
+            <tr><td class="trace-desc">2</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc">8</span><span class="vc">6</span><span class="vc">5</span></span></td><td>4</td><td>0</td></tr>
+            <tr><td class="trace-desc">3</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc">6</span><span class="vc">8</span></span></td><td>3</td><td>1</td></tr>
+            <tr><td class="trace-desc">4</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc">8</span></span></td><td>2</td><td>0</td></tr>
+            <tr><td class="trace-desc">5</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">8</span></span></td><td>1</td><td>0</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td><strong>15</strong></td><td><strong>2</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p><strong>Bubble Sort</strong></p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Vetor</th><th>Comparações</th><th>Trocas</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">1</td><td><span class="vec"><span class="vc">3</span><span class="vc">6</span><span class="vc">1</span><span class="vc">5</span><span class="vc s">8</span></span></td><td>4</td><td>3</td></tr>
+            <tr><td class="trace-desc">2</td><td><span class="vec"><span class="vc">3</span><span class="vc">1</span><span class="vc">5</span><span class="vc s">6</span><span class="vc s">8</span></span></td><td>3</td><td>2</td></tr>
+            <tr><td class="trace-desc">3</td><td><span class="vec"><span class="vc">1</span><span class="vc">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">8</span></span></td><td>2</td><td>1</td></tr>
+            <tr><td class="trace-desc">4</td><td><span class="vec"><span class="vc">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">8</span></span></td><td>1</td><td>0</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td><strong>10</strong></td><td><strong>6</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p>O vetor tem 6 inversões: o Insertion fez 6 deslocamentos e o Bubble 6 trocas. O Selection fez 15 comparações (o laço interno começa em <code>j = i</code>), mas só 2 trocas efetivas. Com a versão com <code>trocou</code>, o Bubble pararia na passada 4, que não tem trocas.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade VII — Métodos de Ordenação e Pesquisa (Parte I) · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>
