@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ordenação e Pesquisa (Parte II) — Unidade VII (Versão para Impressão)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef0ea;
+    --border: #b7c0aa;
+    --ink: #1e2a22;
+    --ink-dim: #4c5744;
+    --accent: #2f6e58;
+    --accent-2: #b8531f;
+    --accent-2-bright: #b8531f;
+    --good: #2f6e58;
+    --bad: #af3a2c;
+    --null-fill: #d1652b;
+    --null-text: #241605;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 12pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  h1, h2, h3 {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.2rem;
+  }
+
+  /* ---------- Header ---------- */
+
+  header.page-header {
+    padding: 2.2rem 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+  }
+  .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.85em;
+    background: var(--null-fill);
+    border-radius: 2px;
+  }
+  .print-tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.15em 0.55em;
+    margin-left: auto;
+  }
+
+  h1.title {
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+    margin: 0.5rem 0 0.6rem;
+  }
+  h1.title .dim { color: var(--ink-dim); }
+
+  .subtitle {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1rem;
+    max-width: 62ch;
+    margin: 0;
+  }
+
+  .call-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .call-strip span.fn {
+    padding: 0.3em 0.6em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink-dim);
+  }
+  .call-strip span.fn.is-entry {
+    background: var(--null-fill);
+    color: var(--null-text);
+    border-color: var(--null-fill);
+    font-weight: 700;
+  }
+  .call-strip span.arrow { color: var(--accent-2); }
+
+  /* ---------- TOC ---------- */
+
+  nav.toc {
+    margin: 1.6rem 0 2rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.4rem;
+  }
+  nav.toc h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 0.75rem;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  nav.toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75em;
+  }
+  nav.toc a .num { color: var(--accent-2); }
+  nav.toc .toc-group {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0.7rem 0 0.15rem;
+  }
+  nav.toc .toc-group:first-child { margin-top: 0; }
+
+  /* ---------- Main content ---------- */
+
+  main { counter-reset: chapter; padding-bottom: 1rem; }
+
+  section.chapter {
+    padding: 1.8rem 0;
+    border-bottom: 1px solid var(--border);
+    break-inside: avoid-page;
+  }
+  section.chapter:last-of-type { border-bottom: none; }
+
+  section.chapter h2 {
+    counter-increment: chapter;
+    font-size: 1.35rem;
+    margin: 0 0 1rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55em;
+    break-after: avoid;
+  }
+  section.chapter h2::before {
+    content: counter(chapter, decimal-leading-zero);
+    color: var(--accent-2);
+    font-size: 0.85em;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin: 1.4rem 0 0.6rem;
+    color: var(--accent);
+    break-after: avoid;
+  }
+  h3 code { font-size: 0.95em; }
+
+  p { margin: 0 0 0.85rem; orphans: 3; widows: 3; }
+  ul, ol.plain { margin: 0 0 0.85rem; padding-left: 1.3em; }
+  li { margin-bottom: 0.3rem; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.3em;
+    color: var(--ink);
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  pre code { background: none; border: none; padding: 0; }
+  .tok-null { color: var(--accent-2-bright); font-weight: 700; }
+  .tok-comment { color: var(--ink-dim); font-style: italic; }
+  .tok-str { color: var(--accent); }
+  .tok-kw { color: var(--accent-2); }
+
+  .code-compare {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin: 0 0 1rem;
+    break-inside: avoid;
+  }
+  .code-compare .panel-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .code-compare .panel-label.bad { color: var(--bad); }
+  .code-compare .panel-label.good { color: var(--good); }
+  .code-compare pre { margin-bottom: 0; height: 100%; }
+
+  blockquote {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1.1rem;
+    border-left: 3px solid var(--accent-2);
+    background: var(--surface-2);
+    border-radius: 0 6px 6px 0;
+    font-style: italic;
+    color: var(--ink);
+    break-inside: avoid;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  blockquote strong { font-style: normal; }
+
+  .callout {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1.1rem;
+    border: 1px dashed var(--accent-2);
+    border-radius: 6px;
+    background: var(--surface);
+    break-inside: avoid;
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* type cards used as exercise cards */
+  .type-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.7rem;
+    margin: 1rem 0;
+    break-inside: avoid;
+  }
+  .type-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.8rem 0.9rem;
+  }
+  .type-card .type-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .type-card p { margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--ink-dim); }
+  .type-card .example { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink); }
+
+  /* ---------- Diagrams ---------- */
+
+  figure.diagram {
+    margin: 1.2rem 0 1.3rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.8rem;
+    break-inside: avoid;
+  }
+  .diagram-scroll { overflow-x: auto; }
+  .diagram-scroll svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figure.diagram figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    margin-top: 0.7rem;
+    line-height: 1.5;
+  }
+  figure.diagram figcaption strong { color: var(--ink); }
+
+  .cell-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .cell-null { fill: var(--null-fill); stroke: var(--null-fill); }
+  .cell-empty { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; stroke-dasharray: 3 2; }
+  .cell-char { fill: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .cell-null-text { fill: var(--null-text); font-weight: 700; font-family: var(--font-mono); }
+  .cell-index { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label { fill: var(--ink-dim); font-family: var(--font-mono); }
+  .diagram-label.strong { fill: var(--accent-2); font-weight: 700; }
+  .diagram-line { stroke: var(--ink-dim); stroke-width: 1.25; fill: none; }
+  .diagram-tri { fill: var(--ink-dim); }
+  .code-label { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-box { fill: var(--surface-2); stroke: var(--border); stroke-width: 1.25; }
+  .chip-text { fill: var(--ink); font-family: var(--font-mono); font-weight: 600; }
+  .chip-active { stroke: var(--accent); stroke-width: 2.25; }
+  .chip-dashed { stroke-dasharray: 4 3; }
+  .badge-circle { fill: var(--accent); }
+  .badge-text { fill: var(--surface); font-family: var(--font-mono); font-weight: 700; }
+
+  /* ---------- Trace table (step-by-step simulation) ---------- */
+
+  .trace-wrap {
+    overflow-x: auto;
+    margin: 0 0 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    break-inside: avoid;
+  }
+  .trace-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    background: var(--surface);
+  }
+  .trace-table th, .trace-table td {
+    padding: 0.45rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .trace-table thead th {
+    background: var(--surface-2);
+    color: var(--ink-dim);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .trace-table td.trace-desc {
+    white-space: normal;
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    min-width: 190px;
+  }
+  .trace-table tr:last-child td { border-bottom: none; }
+  .trace-step { color: var(--accent-2); font-weight: 700; }
+  .trace-changed { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  .trace-gone { color: var(--ink-dim); font-style: italic; }
+
+  /* ---------- Quiz (static, for print) ---------- */
+
+  .quiz-print {
+    margin: 1.6rem 0;
+    background: var(--surface-2);
+    border: 1px dashed var(--accent-2);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 4px 8px 8px 4px;
+    padding: 1.1rem 1.3rem 1.2rem;
+    break-inside: avoid-page;
+  }
+  .quiz-print-title {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.72rem;
+    color: var(--accent-2);
+    margin: 0 0 0.9rem;
+  }
+  .quiz-print-title span { text-transform: none; letter-spacing: normal; color: var(--ink-dim); font-family: var(--font-serif); font-style: italic; }
+  ol.qp-questions { list-style: none; margin: 0; padding: 0; counter-reset: qp; }
+  ol.qp-questions > li { counter-increment: qp; margin-bottom: 1rem; break-inside: avoid; }
+  ol.qp-questions > li:last-child { margin-bottom: 0; }
+  .qp-question {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+  }
+  .qp-question::before {
+    content: counter(qp) ". ";
+    font-family: var(--font-mono);
+    color: var(--accent-2);
+    font-weight: 700;
+    margin-right: 0.1em;
+  }
+  ol.qp-options {
+    list-style-type: lower-alpha;
+    margin: 0;
+    padding-left: 1.6em;
+    display: grid;
+    gap: 0.25rem;
+  }
+  ol.qp-options li { font-size: 0.93rem; }
+
+  /* ---------- Gabarito ---------- */
+
+  .gabarito-group { margin-bottom: 1.4rem; }
+  .gabarito-group:last-child { margin-bottom: 0; }
+  .gabarito-group h3 {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin: 0 0 0.6rem;
+  }
+  ol.gabarito-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+  }
+  ol.gabarito-list li {
+    font-size: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    break-inside: avoid;
+  }
+  .gab-answer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--good);
+    margin-right: 0.4em;
+  }
+  .gab-explain { color: var(--ink-dim); }
+
+  footer {
+    padding: 1.6rem 0 2rem;
+    color: var(--ink-dim);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    border-top: 1px solid var(--border);
+  }
+
+  @page {
+    size: A4;
+    margin: 1.6cm 1.5cm;
+  }
+
+  @media print {
+    nav.toc { break-after: page; }
+    section.chapter#gabarito { break-before: page; }
+    a { color: var(--ink); }
+  }
+
+  @media screen {
+    body { background: #e9e9e9; }
+    .wrap { background: var(--bg); }
+    header.page-header .wrap, main .wrap, footer .wrap { background: var(--bg); }
+  }
+
+  @media (max-width: 560px) {
+    .type-cards { grid-template-columns: 1fr; }
+    .code-compare { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Unidade VII (Parte II) ---------- */
+  :root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #9b59b6; }
+  .kicker-line {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin: -0.6rem 0 1rem;
+  }
+  .vec { display: inline-flex; gap: 3px; font-family: var(--font-mono); }
+  .vec .vc {
+    display: inline-block;
+    min-width: 1.7em;
+    padding: 0.05em 0.25em;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.86em;
+    background: var(--surface);
+  }
+  .vec .vc.s { background: var(--surface-2); color: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .vec .vc.c { background: var(--surface-2); color: var(--accent-2); border-color: var(--accent-2); font-weight: 700; }
+  .vec .vc.p { background: var(--accent); color: var(--surface); border-color: var(--accent); font-weight: 700; }
+  .vec .vc.o { opacity: 0.45; }
+  .trace-table tr.total-row td { font-family: var(--font-mono); }
+  .trace-table th, .trace-table td { white-space: normal; }
+  .trace-table code, .trace-table .vec { white-space: nowrap; }
+  .fill-table td { min-width: 9.5em; height: 2.2em; }
+  .shell-gaps svg .sg-idx, .shell-gaps svg .sg-lab, .shell-gaps svg .sg-note { fill: var(--ink-dim); font-family: var(--font-mono); font-size: 11px; }
+  .shell-gaps svg .sg-lab { font-size: 12px; }
+  .shell-gaps svg .sg-val { fill: var(--ink); font-family: var(--font-mono); font-size: 15px; font-weight: 700; }
+  .shell-gaps svg .sg-cell { fill: var(--surface); stroke-width: 2; }
+  .shell-gaps svg .sg-cell.moved { fill: var(--surface-2); stroke-dasharray: 4 3; }
+  .shell-gaps svg .sg-arc { fill: none; stroke-width: 2; }
+  .shell-gaps svg .g0 { stroke: var(--series-1); }
+  .shell-gaps svg .g1 { stroke: var(--series-2); }
+  .shell-gaps svg .g2 { stroke: var(--series-3); }
+  .shell-gaps svg .g3 { stroke: var(--series-4); }
+  .swatch.sg-sw.g0 { background: var(--series-1); }
+  .swatch.sg-sw.g1 { background: var(--series-2); }
+  .swatch.sg-sw.g2 { background: var(--series-3); }
+  .swatch.sg-sw.g3 { background: var(--series-4); }
+  .merge-tree svg .mt-group { fill: var(--surface); stroke: var(--border); stroke-width: 1.5; }
+  .merge-tree svg .mt-group.mrg { fill: var(--surface-2); stroke: var(--accent); }
+  .merge-tree svg .mt-val { fill: var(--ink); font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .merge-tree svg .mt-side { fill: var(--ink-dim); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .merge-tree svg .mt-side.mrg { fill: var(--accent); }
+  .merge-tree svg .mt-lvl { fill: var(--ink-dim); font-family: var(--font-mono); font-size: 11px; }
+  .merge-tree svg .mt-sep { stroke: var(--border); stroke-dasharray: 3 4; }
+
+  section.chapter { break-inside: auto; }
+  nav.toc { break-inside: avoid; }
+  figure.diagram { break-inside: avoid; }
+  p:has(+ pre), p:has(+ .trace-wrap), h3:has(+ pre) { break-after: avoid; }
+  pre, .keep { break-inside: avoid; }
+  .trace-wrap { overflow: visible; }
+  .trace-table th, .trace-table td { white-space: normal; padding: 0.4rem 0.45rem; }
+  .vec { gap: 1px; white-space: nowrap; }
+  .vec .vc { min-width: 1.45em; padding: 0 0.1em; font-size: 0.8em; }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="wrap">
+    <p class="eyebrow">Unidade VII · Laboratório de Técnicas de Programação <span class="print-tag">Versão para impressão</span></p>
+    <h1 class="title">Métodos de Ordenação e Pesquisa<br><span class="dim">Parte II — Shell, Merge e Quick Sort</span></h1>
+    <p class="subtitle">Os algoritmos da Parte I movem cada elemento uma posição por vez e custam O(n²). Nesta segunda parte veremos três formas de fazer melhor: o Shell Sort, que dá saltos, e dois algoritmos recursivos de dividir para conquistar, o Merge Sort e o Quick Sort.</p>
+    <div class="call-strip" aria-hidden="true">
+      <span class="fn is-entry">6 5 3 1 8 7 2 4</span>
+      <span class="arrow">→</span>
+      <span class="fn">shell · merge · quick</span>
+      <span class="arrow">→</span>
+      <span class="fn">1 2 3 4 5 6 7 8</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sumário">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#introducao"><span class="num">01</span> Além do O(n²)</a></li>
+
+      <li class="toc-group" role="presentation">Parte 1 — Shell Sort</li>
+      <li><a href="#shell"><span class="num">02</span> Ideia e exemplo</a></li>
+      <li><a href="#shell-codigo"><span class="num">03</span> Código e o valor de h</a></li>
+
+      <li class="toc-group" role="presentation">Parte 2 — Dividir para conquistar e Merge Sort</li>
+      <li><a href="#dividir"><span class="num">04</span> Dividir para conquistar</a></li>
+      <li><a href="#merge"><span class="num">05</span> Merge Sort: ideia e exemplo</a></li>
+      <li><a href="#merge-codigo"><span class="num">06</span> Merge Sort: código e características</a></li>
+
+      <li class="toc-group" role="presentation">Parte 3 — Quick Sort</li>
+      <li><a href="#quick"><span class="num">07</span> Ideia e exemplo</a></li>
+      <li><a href="#quick-codigo"><span class="num">08</span> Código e características</a></li>
+      <li><a href="#comparacao"><span class="num">09</span> Comparando os seis algoritmos</a></li>
+
+      <li class="toc-group" role="presentation">Parte 4 (lab) — Prática</li>
+      <li><a href="#exercicios"><span class="num">10</span> Exercícios de laboratório</a></li>
+      <li><a href="#gabarito"><span class="num">11</span> Gabarito dos exercícios</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- 01 -->
+    <section class="chapter" id="introducao">
+      <h2>Além do O(n²)</h2>
+      <p>Na Parte I vimos três algoritmos simples: <strong>Insertion</strong>, <strong>Selection</strong> e <strong>Bubble Sort</strong>. Todos são <strong>O(n²)</strong>: dobrar o tamanho do vetor quadruplica o tempo. Com um milhão de elementos, isso significa cerca de <strong>um trilhão</strong> de operações.</p>
+      <p>O defeito comum aos três é que eles <strong>movem os elementos uma posição por vez</strong>, ou comparam cada elemento com todos os outros. Nesta segunda parte veremos três algoritmos que contornam esse problema de formas diferentes:</p>
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Shell Sort</div>
+          <p>Insertion Sort com <strong>saltos</strong> de tamanho <code>h</code>, que diminuem até 1.</p>
+          <p class="example">iterativo</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Merge Sort</div>
+          <p>Divide o vetor ao meio, ordena cada metade e <strong>intercala</strong> as duas.</p>
+          <p class="example">dividir para conquistar</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Quick Sort</div>
+          <p>Escolhe um <strong>pivô</strong>, separa menores à esquerda e maiores à direita e repete em cada lado.</p>
+          <p class="example">dividir para conquistar</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="chapter" id="shell">
+      <h2>Shell Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Inserção com saltos</p>
+      <h3>Contextualização</h3>
+      <ul>
+        <li>Proposto por <strong>Donald Shell</strong> (1959).</li>
+        <li>É uma <strong>extensão do Insertion Sort</strong>. Lembre da ideia geral: cada elemento (<code>key</code>) é deslizado para a esquerda até encontrar seu lugar na parte já ordenada.</li>
+        <li><strong>Problemas</strong> do Insertion Sort:
+          <ul>
+            <li>Ele <strong>troca itens adjacentes</strong> para determinar o ponto de inserção: cada elemento anda <strong>uma posição por vez</strong>.</li>
+            <li>São efetuadas <strong><code>n - 1</code> trocas</strong> quando o menor item está na posição <strong>mais à direita</strong> do vetor: ele atravessa o vetor inteiro, de vizinho em vizinho.</li>
+            <li>É <strong>ineficiente para <code>n</code> grande</strong>: O(n²).</li>
+          </ul>
+        </li>
+        <li>O Shell Sort contorna esse problema criando um <strong>gap</strong> (distância, salto) de troca: um elemento pode andar <code>h</code> posições de uma vez.</li>
+      </ul>
+      <h3>Ideia básica</h3>
+      <ol>
+        <li>Os itens separados por <code>h</code> posições (o <strong>gap</strong>) são rearranjados com o Insertion Sort, gerando <strong>sequências ordenadas</strong>.</li>
+        <li>Dizemos que cada sequência é <strong>h-ordenada</strong>: pegando um elemento a cada <code>h</code> posições, o que sobra está em ordem.</li>
+        <li>O valor de <code>h</code> é <strong>reduzido progressivamente</strong> até <code>h = 1</code>. A passada com <code>h = 1</code> é um Insertion Sort comum, que termina com o vetor <strong>ordenado</strong>.</li>
+      </ol>
+      <p>Os primeiros saltos, grandes, levam os elementos <strong>para perto</strong> do lugar certo com poucos movimentos. Quando chega a vez de <code>h = 1</code>, o vetor já está <strong>quase ordenado</strong>, e o Insertion Sort é rápido nesse caso (melhor caso Ω(n), lembra?).</p>
+      <p style="overflow-wrap: anywhere">Animação: <a href="https://www.w3resource.com/ODSA/AV/Sorting/shellsortAV.html" target="_blank" rel="noopener">w3resource.com/ODSA/AV/Sorting/shellsortAV.html</a></p>
+      <h3>Exemplo: <code>6 5 3 1 8 7 2 4</code></h3>
+      <p>Para <code>n = 8</code>, o código calcula os saltos <code>h = 4</code> e <code>h = 1</code>. Na passada com <code>h = 4</code>, o vetor é visto como <strong>4 subsequências intercaladas</strong>, cada uma formada por elementos a 4 posições de distância, e cada subsequência é ordenada por inserção de forma independente:</p>
+      <figure class="diagram shell-gaps">
+        <div class="legend-chips">
+          <span class="legend-chip"><span class="swatch sg-sw g0"></span>posições 0 e 4</span>
+          <span class="legend-chip"><span class="swatch sg-sw g1"></span>posições 1 e 5</span>
+          <span class="legend-chip"><span class="swatch sg-sw g2"></span>posições 2 e 6</span>
+          <span class="legend-chip"><span class="swatch sg-sw g3"></span>posições 3 e 7</span>
+        </div>
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 470 226" role="img" aria-label="Vetor 6 5 3 1 8 7 2 4 dividido em quatro subsequências de salto 4. Após a passada com h igual a 4, o vetor fica 6 5 2 1 8 7 3 4: só o 3 e o 2 trocaram de lugar.">
+<path class="sg-arc g0" d="M113.0 94 C113.0 72 297.0 72 297.0 94"></path>
+<path class="sg-arc g1" d="M159.0 94 C159.0 56 343.0 56 343.0 94"></path>
+<path class="sg-arc g2" d="M205.0 94 C205.0 40 389.0 40 389.0 94"></path>
+<path class="sg-arc g3" d="M251.0 94 C251.0 24 435.0 24 435.0 94"></path>
+<text class="sg-lab" x="78" y="117" text-anchor="end">antes</text>
+<rect class="sg-cell g0" x="93.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="113.0" y="116" text-anchor="middle">6</text>
+<rect class="sg-cell g1" x="139.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="159.0" y="116" text-anchor="middle">5</text>
+<rect class="sg-cell g2" x="185.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="205.0" y="116" text-anchor="middle">3</text>
+<rect class="sg-cell g3" x="231.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="251.0" y="116" text-anchor="middle">1</text>
+<rect class="sg-cell g0" x="277.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="297.0" y="116" text-anchor="middle">8</text>
+<rect class="sg-cell g1" x="323.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="343.0" y="116" text-anchor="middle">7</text>
+<rect class="sg-cell g2" x="369.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="389.0" y="116" text-anchor="middle">2</text>
+<rect class="sg-cell g3" x="415.0" y="94" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="435.0" y="116" text-anchor="middle">4</text>
+<text class="sg-lab" x="78" y="201" text-anchor="end">após h = 4</text>
+<rect class="sg-cell g0" x="93.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="113.0" y="200" text-anchor="middle">6</text>
+<rect class="sg-cell g1" x="139.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="159.0" y="200" text-anchor="middle">5</text>
+<rect class="sg-cell g2 moved" x="185.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="205.0" y="200" text-anchor="middle">2</text>
+<rect class="sg-cell g3" x="231.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="251.0" y="200" text-anchor="middle">1</text>
+<rect class="sg-cell g0" x="277.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="297.0" y="200" text-anchor="middle">8</text>
+<rect class="sg-cell g1" x="323.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="343.0" y="200" text-anchor="middle">7</text>
+<rect class="sg-cell g2 moved" x="369.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="389.0" y="200" text-anchor="middle">3</text>
+<rect class="sg-cell g3" x="415.0" y="178" width="40" height="32" rx="4"></rect>
+<text class="sg-val" x="435.0" y="200" text-anchor="middle">4</text>
+<text class="sg-idx" x="113.0" y="144" text-anchor="middle">0</text>
+<text class="sg-idx" x="159.0" y="144" text-anchor="middle">1</text>
+<text class="sg-idx" x="205.0" y="144" text-anchor="middle">2</text>
+<text class="sg-idx" x="251.0" y="144" text-anchor="middle">3</text>
+<text class="sg-idx" x="297.0" y="144" text-anchor="middle">4</text>
+<text class="sg-idx" x="343.0" y="144" text-anchor="middle">5</text>
+<text class="sg-idx" x="389.0" y="144" text-anchor="middle">6</text>
+<text class="sg-idx" x="435.0" y="144" text-anchor="middle">7</text>
+<text class="sg-idx" x="78" y="144" text-anchor="end">posição</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 1.</strong> Com <code>h = 4</code>, cada cor é uma subsequência ordenada por inserção, de forma independente. Os pares (6, 8), (5, 7) e (1, 4) já estavam em ordem; só o par (3, 2), tracejado, trocou. O resultado é um vetor <strong>4-ordenado</strong>.</figcaption>
+      </figure>
+      <p>Depois, a passada com <code>h = 1</code> é um Insertion Sort comum sobre <code>6 5 2 1 8 7 3 4</code>.</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Vetor após a passada</th><th>Comparações</th><th>Deslocamentos</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td><span class="vec"><span class="vc">6</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>—</td><td>—</td></tr>
+            <tr><td class="trace-desc">h = 4</td><td><span class="vec"><span class="vc">6</span><span class="vc">5</span><span class="vc c">2</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc c">3</span><span class="vc">4</span></span></td><td>4</td><td>1</td></tr>
+            <tr><td class="trace-desc">h = 1</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>19</td><td>15</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td><strong>23</strong></td><td><strong>16</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Para 8 elementos, não há ganho</span>
+        <p>O Insertion Sort puro fez <strong>20 comparações e 16 deslocamentos</strong> nesse mesmo vetor (Parte I). Com <code>n</code> tão pequeno, a passada com <code>h = 4</code> quase não tem o que fazer. A vantagem do Shell Sort aparece com <strong><code>n</code> grande</strong>, quando os saltos longos economizam milhares de deslocamentos de uma posição. Você vai medir isso nos exercícios.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="chapter" id="shell-codigo">
+      <h2>Shell Sort: código e o valor de h</h2>
+<pre><code><span class="tok-kw">void</span> shell_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> n) {
+    <span class="tok-kw">int</span> i, j, h, aux;
+
+    h = 1;
+    <span class="tok-kw">while</span> (h &lt; n)
+        h = 3 * h + 1;
+
+    <span class="tok-kw">do</span> {
+        h = (h - 1) / 3;
+        <span class="tok-kw">for</span> (i = h; i &lt; n; i++) {
+            aux = vet[i];
+            j = i;
+            <span class="tok-kw">while</span> (j &gt;= h &amp;&amp; vet[j - h] &gt; aux) {
+                vet[j] = vet[j - h];
+                j -= h;
+            }
+            vet[j] = aux;
+        }
+    } <span class="tok-kw">while</span> (h != 1);
+}</code></pre>
+      <ul>
+        <li><strong>Calculando o primeiro <code>h</code></strong>: o <code>while</code> gera a sequência <code>1, 4, 13, 40, 121, 364, ...</code> até passar de <code>n</code>. Para <code>n = 8</code>, para em <code>h = 13</code>.</li>
+        <li><strong>No <code>do-while</code></strong>: a primeira linha <strong>desfaz</strong> um passo da sequência (<code>h = (h - 1) / 3</code>), voltando para o maior <code>h</code> menor que <code>n</code>. Para <code>n = 8</code>: 13 → <strong>4</strong> → <strong>1</strong>. Quando a passada com <code>h = 1</code> termina, o <code>while (h != 1)</code> encerra o laço.</li>
+        <li><strong>O corpo do <code>for</code> é o Insertion Sort</strong> da Parte I, trocando <code>1</code> por <code>h</code>: <code>aux</code> faz o papel de <code>key</code>, a comparação é com <code>vet[j - h]</code> (o vizinho a <code>h</code> posições) e o deslocamento é <code>vet[j] = vet[j - h]</code>. Com <code>h = 1</code>, o código fica <strong>idêntico</strong> ao Insertion Sort.</li>
+        <li>O <code>for</code> percorre <code>i</code> de <code>h</code> até <code>n - 1</code> <strong>uma vez só</strong>, e as subsequências são tratadas <strong>intercaladas</strong>: <code>i = h</code> trabalha na subsequência 0, <code>i = h + 1</code> na subsequência 1, e assim por diante.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">Cuidado com n = 1</span>
+        <p>Com um único elemento, <code>h</code> começa em 1 e não entra no <code>while</code>; no <code>do</code>, <code>h = (1 - 1) / 3 = 0</code>, e o <code>while (h != 1)</code> <strong>nunca termina</strong>: laço infinito. Antes de usar a função, proteja-a com <code>if (n &lt; 2) return;</code> no início.</p>
+      </div>
+      <h3>O valor de h (gap) importa</h3>
+      <ul>
+        <li><code>h</code> foi inicialmente proposto como valores <strong>múltiplos de 2</strong> (<code>n/2, n/4, ..., 1</code>), e era <strong>ineficiente</strong>: com saltos todos pares, elementos em posições pares e ímpares <strong>só são comparados entre si na última passada</strong> (<code>h = 1</code>).</li>
+        <li><strong>Donald Knuth</strong> propôs <strong>empiricamente</strong> uma fórmula para <code>h</code> que apresenta <strong>eficiência satisfatória</strong>:
+          <ul>
+            <li>Para <code>s = 1</code>: <code>h(s) = 1</code></li>
+            <li>Para <code>s &gt; 1</code>: <code>h(s) = 3 · h(s − 1) + 1</code></li>
+          </ul>
+          Isso gera <code>1, 4, 13, 40, 121, 364, 1093, ...</code>, exatamente a sequência usada no código.</li>
+        <li>Existem <strong>diversas sequências</strong> de <code>h</code> propostas, cada uma com suas particularidades (Shell, Hibbard, Sedgewick, Ciura...).</li>
+      </ul>
+      <h3>Características</h3>
+      <ul>
+        <li>A <strong>complexidade</strong> do Shell Sort <strong>ainda não é conhecida</strong>. Sua análise depende de <strong>problemas matemáticos difíceis</strong> e sofre <strong>forte influência</strong> da própria sequência de <code>h</code>.</li>
+        <li>O que se sabe é que <strong><code>h</code> não deve ser múltiplo do anterior</strong>. Trata-se de uma <strong>observação empírica, experimental</strong>.</li>
+        <li><strong>Conjecturas</strong> referentes ao número de comparações para a sequência de Knuth: <code>C₁(n) = O(n<sup>1,25</sup>)</code> e <code>C₂(n) = O(n (ln n)²)</code>.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">O que é uma conjectura?</span>
+        <p>Conjecturas são comuns na matemática, nas ciências e em outras áreas do conhecimento: pesquisadores observam um padrão ou uma regularidade e propõem uma conjectura para tentar descrevê-lo. No entanto, enquanto uma conjectura não for <strong>provada ou refutada</strong>, ela permanece no campo das <strong>hipóteses</strong>.</p>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: O(1). Usa só <code>i</code>, <code>j</code>, <code>h</code> e <code>aux</code>: ordena no próprio vetor.</li>
+        <li><strong>Não é estável</strong>: os saltos podem fazer um elemento "pular" outro de mesma chave.</li>
+      </ul>
+      <div class="quiz-print" id="quiz-parte1">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 1 — Shell Sort <span>— confira as respostas no Gabarito, seção 11</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Qual é a relação entre o Shell Sort e o Insertion Sort?</p>
+            <ol class="qp-options">
+              <li>Não têm relação nenhuma</li>
+              <li>O Shell Sort é um Insertion Sort aplicado com saltos <code>h</code> que diminuem até 1</li>
+              <li>O Shell Sort é um Insertion Sort recursivo</li>
+              <li>O Shell Sort usa o Insertion Sort só quando <code>n</code> é pequeno</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Com o código do roteiro, quais valores de <code>h</code> são usados para <code>n = 100</code>?</p>
+            <ol class="qp-options">
+              <li>50, 25, 12, 6, 3, 1</li>
+              <li>121, 40, 13, 4, 1</li>
+              <li>40, 13, 4, 1</li>
+              <li>100, 10, 1</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Qual é a complexidade do Shell Sort com a sequência de Knuth?</p>
+            <ol class="qp-options">
+              <li>Exatamente O(n log n), já provado</li>
+              <li>O(n²) em todos os casos</li>
+              <li>Não é conhecida com exatidão; há conjecturas como O(n<sup>1,25</sup>)</li>
+              <li>O(n)</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="chapter" id="dividir">
+      <h2>Dividir para conquistar</h2>
+      <p>Os próximos dois algoritmos pertencem à família chamada <strong>dividir para conquistar</strong> (<em>divide and conquer</em>):</p>
+      <ul>
+        <li><strong>Quebrar</strong> o problema em versões <strong>menores</strong>, resolvendo estas e aproveitando a solução para resolver o problema todo.</li>
+        <li><strong>Dividir</strong> o problema em vários <strong>subproblemas</strong> e resolver esses subproblemas através da <strong>recursividade</strong> (Unidade III).</li>
+        <li><strong>Conquistar</strong>: após todos os subproblemas terem sido resolvidos, ocorre a conquista, que é a <strong>união das resoluções</strong> dos subproblemas.</li>
+      </ul>
+      <div class="callout">
+        <span class="callout-label">Atenção: o problema deve ser decomponível</span>
+        <p>Deve ser possível decompor qualquer instância não trivial do problema em <strong>instâncias menores do mesmo tipo</strong> de problema: uma instância é composta por instâncias menores do próprio problema. É a <strong>natureza recursiva</strong> do problema. Ordenação é decomponível: ordenar 8 números pode ser feito ordenando dois grupos de 4.</p>
+      </div>
+      <p>Toda recursão precisa de um <strong>caso base</strong>, que não se divide mais. Na ordenação, o caso base é o vetor de <strong>um</strong> elemento: ele já está ordenado.</p>
+      <div class="type-cards">
+        <div class="type-card">
+          <div class="type-name">Merge Sort</div>
+          <p>Divisão <strong>trivial</strong> (só calcula o meio); conquista <strong>trabalhosa</strong> (intercalar as metades).</p>
+          <p class="example">trabalho na volta da recursão</p>
+        </div>
+        <div class="type-card">
+          <div class="type-name">Quick Sort</div>
+          <p>Divisão <strong>trabalhosa</strong> (particionar em torno do pivô); conquista <strong>trivial</strong> (nada a combinar).</p>
+          <p class="example">trabalho na ida da recursão</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="chapter" id="merge">
+      <h2>Merge Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Ordenação por intercalação</p>
+      <h3>Ideia geral</h3>
+      <ol>
+        <li><strong>Dividir</strong>: calcula o <strong>ponto médio</strong> do vetor, dividindo-o em 2 subvetores.</li>
+        <li><strong>Conquistar</strong>: <strong>recursivamente</strong> ordena os dois subvetores, cada um de tamanho <code>n/2</code>.</li>
+        <li><strong>Combinar</strong>: <strong>une</strong> (intercala, <em>merge</em>) os dois subvetores ordenados num único vetor ordenado.</li>
+      </ol>
+      <h3>Exemplo: <code>6 5 3 1 8 7 2 4</code></h3>
+      <figure class="diagram merge-tree">
+        <div class="diagram-scroll">
+          <svg viewBox="0 0 540 356" role="img" aria-label="Árvore do Merge Sort para 6 5 3 1 8 7 2 4: três níveis de divisão até sobrarem elementos isolados e três níveis de intercalação, cada um passando pelos 8 elementos, até 1 2 3 4 5 6 7 8.">
+<rect class="mt-group div" x="116.0" y="31" width="274.0" height="30" rx="5"></rect>
+<text class="mt-val" x="134.0" y="51" text-anchor="middle">6</text>
+<text class="mt-val" x="168.0" y="51" text-anchor="middle">5</text>
+<text class="mt-val" x="202.0" y="51" text-anchor="middle">3</text>
+<text class="mt-val" x="236.0" y="51" text-anchor="middle">1</text>
+<text class="mt-val" x="270.0" y="51" text-anchor="middle">8</text>
+<text class="mt-val" x="304.0" y="51" text-anchor="middle">7</text>
+<text class="mt-val" x="338.0" y="51" text-anchor="middle">2</text>
+<text class="mt-val" x="372.0" y="51" text-anchor="middle">4</text>
+<rect class="mt-group div" x="109.0" y="77" width="138.0" height="30" rx="5"></rect>
+<text class="mt-val" x="127.0" y="97" text-anchor="middle">6</text>
+<text class="mt-val" x="161.0" y="97" text-anchor="middle">5</text>
+<text class="mt-val" x="195.0" y="97" text-anchor="middle">3</text>
+<text class="mt-val" x="229.0" y="97" text-anchor="middle">1</text>
+<rect class="mt-group div" x="259.0" y="77" width="138.0" height="30" rx="5"></rect>
+<text class="mt-val" x="277.0" y="97" text-anchor="middle">8</text>
+<text class="mt-val" x="311.0" y="97" text-anchor="middle">7</text>
+<text class="mt-val" x="345.0" y="97" text-anchor="middle">2</text>
+<text class="mt-val" x="379.0" y="97" text-anchor="middle">4</text>
+<rect class="mt-group div" x="95.0" y="123" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="113.0" y="143" text-anchor="middle">6</text>
+<text class="mt-val" x="147.0" y="143" text-anchor="middle">5</text>
+<rect class="mt-group div" x="177.0" y="123" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="195.0" y="143" text-anchor="middle">3</text>
+<text class="mt-val" x="229.0" y="143" text-anchor="middle">1</text>
+<rect class="mt-group div" x="259.0" y="123" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="277.0" y="143" text-anchor="middle">8</text>
+<text class="mt-val" x="311.0" y="143" text-anchor="middle">7</text>
+<rect class="mt-group div" x="341.0" y="123" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="359.0" y="143" text-anchor="middle">2</text>
+<text class="mt-val" x="393.0" y="143" text-anchor="middle">4</text>
+<rect class="mt-group div" x="67.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="85.0" y="189" text-anchor="middle">6</text>
+<rect class="mt-group div" x="115.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="133.0" y="189" text-anchor="middle">5</text>
+<rect class="mt-group div" x="163.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="181.0" y="189" text-anchor="middle">3</text>
+<rect class="mt-group div" x="211.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="229.0" y="189" text-anchor="middle">1</text>
+<rect class="mt-group div" x="259.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="277.0" y="189" text-anchor="middle">8</text>
+<rect class="mt-group div" x="307.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="325.0" y="189" text-anchor="middle">7</text>
+<rect class="mt-group div" x="355.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="373.0" y="189" text-anchor="middle">2</text>
+<rect class="mt-group div" x="403.0" y="169" width="36.0" height="30" rx="5"></rect>
+<text class="mt-val" x="421.0" y="189" text-anchor="middle">4</text>
+<rect class="mt-group mrg" x="95.0" y="215" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="113.0" y="235" text-anchor="middle">5</text>
+<text class="mt-val" x="147.0" y="235" text-anchor="middle">6</text>
+<rect class="mt-group mrg" x="177.0" y="215" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="195.0" y="235" text-anchor="middle">1</text>
+<text class="mt-val" x="229.0" y="235" text-anchor="middle">3</text>
+<rect class="mt-group mrg" x="259.0" y="215" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="277.0" y="235" text-anchor="middle">7</text>
+<text class="mt-val" x="311.0" y="235" text-anchor="middle">8</text>
+<rect class="mt-group mrg" x="341.0" y="215" width="70.0" height="30" rx="5"></rect>
+<text class="mt-val" x="359.0" y="235" text-anchor="middle">2</text>
+<text class="mt-val" x="393.0" y="235" text-anchor="middle">4</text>
+<rect class="mt-group mrg" x="109.0" y="261" width="138.0" height="30" rx="5"></rect>
+<text class="mt-val" x="127.0" y="281" text-anchor="middle">1</text>
+<text class="mt-val" x="161.0" y="281" text-anchor="middle">3</text>
+<text class="mt-val" x="195.0" y="281" text-anchor="middle">5</text>
+<text class="mt-val" x="229.0" y="281" text-anchor="middle">6</text>
+<rect class="mt-group mrg" x="259.0" y="261" width="138.0" height="30" rx="5"></rect>
+<text class="mt-val" x="277.0" y="281" text-anchor="middle">2</text>
+<text class="mt-val" x="311.0" y="281" text-anchor="middle">4</text>
+<text class="mt-val" x="345.0" y="281" text-anchor="middle">7</text>
+<text class="mt-val" x="379.0" y="281" text-anchor="middle">8</text>
+<rect class="mt-group mrg" x="116.0" y="307" width="274.0" height="30" rx="5"></rect>
+<text class="mt-val" x="134.0" y="327" text-anchor="middle">1</text>
+<text class="mt-val" x="168.0" y="327" text-anchor="middle">2</text>
+<text class="mt-val" x="202.0" y="327" text-anchor="middle">3</text>
+<text class="mt-val" x="236.0" y="327" text-anchor="middle">4</text>
+<text class="mt-val" x="270.0" y="327" text-anchor="middle">5</text>
+<text class="mt-val" x="304.0" y="327" text-anchor="middle">6</text>
+<text class="mt-val" x="338.0" y="327" text-anchor="middle">7</text>
+<text class="mt-val" x="372.0" y="327" text-anchor="middle">8</text>
+<text class="mt-side" x="8" y="119">dividir</text>
+<text class="mt-side mrg" x="8" y="280">combinar</text>
+<line class="mt-sep" x1="70" y1="208" x2="460" y2="208"></line>
+<text class="mt-lvl" x="470" y="96">nível 1</text>
+<text class="mt-lvl" x="470" y="142">nível 2</text>
+<text class="mt-lvl" x="470" y="188">nível 3</text>
+<text class="mt-lvl" x="470" y="234">8 elem.</text>
+<text class="mt-lvl" x="470" y="280">8 elem.</text>
+<text class="mt-lvl" x="470" y="326">8 elem.</text>
+          </svg>
+        </div>
+        <figcaption><strong>Figura 2.</strong> A divisão só calcula o meio; o trabalho está na volta, ao intercalar. Para <code>n = 8</code> são <strong>log₂ 8 = 3</strong> níveis de intercalação, e cada nível passa pelos <strong>8</strong> elementos: cerca de <code>n log₂ n</code> operações.</figcaption>
+      </figure>
+      <p>As intercalações acontecem <strong>na volta da recursão</strong>, nesta ordem:</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>#</th><th>Chamada</th><th>Vetor após o merge</th><th>Comparações</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td><span class="vec"><span class="vc">6</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>—</td></tr>
+            <tr><td class="trace-desc">1</td><td><code>merge(vet, 0, 0, 1)</code></td><td><span class="vec"><span class="vc s">5</span><span class="vc s">6</span><span class="vc o">3</span><span class="vc o">1</span><span class="vc o">8</span><span class="vc o">7</span><span class="vc o">2</span><span class="vc o">4</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">2</td><td><code>merge(vet, 2, 2, 3)</code></td><td><span class="vec"><span class="vc o">5</span><span class="vc o">6</span><span class="vc s">1</span><span class="vc s">3</span><span class="vc o">8</span><span class="vc o">7</span><span class="vc o">2</span><span class="vc o">4</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">3</td><td><code>merge(vet, 0, 1, 3)</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc o">8</span><span class="vc o">7</span><span class="vc o">2</span><span class="vc o">4</span></span></td><td>2</td></tr>
+            <tr><td class="trace-desc">4</td><td><code>merge(vet, 4, 4, 5)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">5</span><span class="vc o">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc o">2</span><span class="vc o">4</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">5</td><td><code>merge(vet, 6, 6, 7)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">5</span><span class="vc o">6</span><span class="vc o">7</span><span class="vc o">8</span><span class="vc s">2</span><span class="vc s">4</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">6</td><td><code>merge(vet, 4, 5, 7)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">5</span><span class="vc o">6</span><span class="vc s">2</span><span class="vc s">4</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>2</td></tr>
+            <tr><td class="trace-desc">7</td><td><code>merge(vet, 0, 3, 7)</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span></span></td><td>6</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td></td><td><strong>14</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>O Insertion Sort precisou de 20 comparações para esse vetor; o Merge Sort, de 14.</p>
+      <h3>Como funciona a intercalação</h3>
+      <p>Intercalar dois vetores <strong>já ordenados</strong> é fácil: compare os <strong>primeiros</strong> de cada um, copie o menor para o vetor auxiliar e avance naquele vetor. Veja a última intercalação, de <code>1 3 5 6</code> com <code>2 4 7 8</code>:</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Compara</th><th>Resultado</th><th>aux</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">1 ≤ 2?</td><td>sim → copia 1</td><td><code>1</code></td></tr>
+            <tr><td class="trace-desc">3 ≤ 2?</td><td>não → copia 2</td><td><code>1 2</code></td></tr>
+            <tr><td class="trace-desc">3 ≤ 4?</td><td>sim → copia 3</td><td><code>1 2 3</code></td></tr>
+            <tr><td class="trace-desc">5 ≤ 4?</td><td>não → copia 4</td><td><code>1 2 3 4</code></td></tr>
+            <tr><td class="trace-desc">5 ≤ 7?</td><td>sim → copia 5</td><td><code>1 2 3 4 5</code></td></tr>
+            <tr><td class="trace-desc">6 ≤ 7?</td><td>sim → copia 6</td><td><code>1 2 3 4 5 6</code></td></tr>
+            <tr><td class="trace-desc">—</td><td>a esquerda acabou: 7 e 8 já estão no lugar</td><td><code>1 2 3 4 5 6</code> | <code>7 8</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Cada comparação coloca <strong>um</strong> elemento no lugar: intercalar <code>n</code> elementos custa no máximo <code>n - 1</code> comparações.</p>
+    </section>
+
+    <!-- 06 -->
+    <section class="chapter" id="merge-codigo">
+      <h2>Merge Sort: código e características</h2>
+<div class="keep">
+      <p><strong>Divisão: trivial.</strong></p>
+<pre><code><span class="tok-kw">void</span> merge_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> inicio, <span class="tok-kw">int</span> fim) {
+    <span class="tok-kw">if</span> (inicio &lt; fim) {
+        <span class="tok-kw">int</span> meio = (inicio + fim) / 2;
+        <span class="tok-kw">if</span> (inicio &lt; meio)
+            merge_sort(vet, inicio, meio);
+        <span class="tok-kw">if</span> (meio + 1 &lt; fim)
+            merge_sort(vet, meio + 1, fim);
+        merge(vet, inicio, meio, fim);
+    }
+}</code></pre>
+</div>
+<div class="keep">
+      <p><strong>Conquista: trabalhosa.</strong></p>
+<pre><code><span class="tok-kw">void</span> merge(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> inicio, <span class="tok-kw">int</span> meio, <span class="tok-kw">int</span> fim) {
+    <span class="tok-kw">int</span> aux[fim - inicio], i, j, k;
+    <span class="tok-kw">for</span> (i = inicio, j = meio + 1, k = 0; i &lt;= meio &amp;&amp; j &lt;= fim; k++) {
+        <span class="tok-kw">if</span> (vet[i] &lt;= vet[j]) {
+            aux[k] = vet[i];
+            i++;
+        } <span class="tok-kw">else</span> {
+            aux[k] = vet[j];
+            j++;
+        }
+    }
+    <span class="tok-kw">if</span> (i &lt;= meio) {
+        <span class="tok-kw">for</span> (j = meio; j &gt;= i; j--) {
+            vet[fim - meio + j] = vet[j];
+        }
+    }
+    <span class="tok-kw">for</span> (i = 0; i &lt; k; i++)
+        vet[i + inicio] = aux[i];
+}</code></pre>
+</div>
+      <p>Chamada no <code>main</code>: <code>merge_sort(vet, 0, n - 1);</code>. Os índices <code>inicio</code> e <code>fim</code> são <strong>inclusivos</strong>. Como <code>merge</code> é usada antes de ser definida, coloque-a antes de <code>merge_sort</code> no arquivo (ou declare seu protótipo).</p>
+      <ul>
+        <li><strong><code>merge_sort</code></strong>: só calcula o <code>meio</code> e chama a si mesma para as duas metades. Os <code>if (inicio &lt; meio)</code> e <code>if (meio + 1 &lt; fim)</code> evitam chamadas para subvetores de <strong>um</strong> elemento (o caso base, que já está ordenado).</li>
+        <li><strong><code>merge</code>, laço <code>for</code></strong>: <code>i</code> percorre a metade esquerda <code>vet[inicio..meio]</code>, <code>j</code> a metade direita <code>vet[meio+1..fim]</code> e <code>k</code> o vetor auxiliar. O laço para quando <strong>uma das metades acaba</strong>.</li>
+        <li><strong>Usar <code>&lt;=</code></strong> (e não <code>&lt;</code>) faz o Merge Sort ser <strong>estável</strong>: em caso de empate, o elemento da <strong>esquerda</strong> vai primeiro.</li>
+        <li><strong>Sobras</strong>: se a metade <strong>direita</strong> acabou primeiro, as sobras da esquerda são movidas para o <strong>final</strong> do trecho (<code>vet[fim - meio + j] = vet[j]</code>, de trás para frente, para não sobrescrever). Se a metade <strong>esquerda</strong> acabou primeiro, as sobras da direita <strong>já estão no lugar certo</strong> e nada precisa ser feito.</li>
+        <li><strong>Cópia de volta</strong>: os <code>k</code> elementos de <code>aux</code> voltam para <code>vet[inicio..]</code>.</li>
+        <li><code>int aux[fim - inicio]</code> é um <strong>vetor de tamanho variável</strong> (padrão C99), alocado na pilha a cada chamada. Ele tem <strong>um elemento a menos</strong> que o trecho, e isso basta: o laço termina quando uma metade acaba, então pelo menos um elemento sempre sobra fora do <code>aux</code>.</li>
+      </ul>
+      <h3>Características</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Caso</th><th>Complexidade</th><th>Quando acontece</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td class="trace-step">O(n log₂ n)</td><td>qualquer vetor</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-step">Ω(n log₂ n)</td><td>qualquer vetor: o Merge sempre divide ao meio e sempre intercala</td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td class="trace-step">Θ(n log₂ n)</td><td>qualquer vetor</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Por que n log₂ n?</span>
+        <p>O vetor é dividido ao meio até sobrar 1 elemento: são <strong>log₂ n níveis</strong> (para <code>n = 8</code>, 3 níveis; para <code>n = 1.000.000</code>, cerca de 20). Em cada nível, as intercalações juntas passam por <strong>todos os <code>n</code> elementos</strong> (veja a Figura 2). Total: <code>n × log₂ n</code>.</p>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: O(n). Precisa de <strong>memória auxiliar</strong> para intercalar, mais a pilha da recursão (O(log n)). É o preço da garantia de O(n log n).</li>
+        <li><strong>Estável</strong>, graças ao <code>&lt;=</code>.</li>
+        <li><strong>Não é adaptativo</strong>: um vetor já ordenado custa praticamente o mesmo que um aleatório (a ordem só reduz as comparações de cada <code>merge</code>, não o número de níveis).</li>
+      </ul>
+      <div class="quiz-print" id="quiz-parte2">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 2 — Dividir para conquistar e Merge Sort <span>— confira as respostas no Gabarito, seção 11</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">No Merge Sort, onde está o trabalho pesado?</p>
+            <ol class="qp-options">
+              <li>Na divisão, ao calcular o meio</li>
+              <li>Na intercalação (<code>merge</code>), na volta da recursão</li>
+              <li>Na escolha do pivô</li>
+              <li>Na cópia inicial do vetor</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Quantos níveis de divisão o Merge Sort tem para <code>n = 1024</code>?</p>
+            <ol class="qp-options">
+              <li>2</li>
+              <li>10</li>
+              <li>512</li>
+              <li>1024</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Por que o Merge Sort precisa de memória O(n)?</p>
+            <ol class="qp-options">
+              <li>Por causa das variáveis <code>i</code>, <code>j</code> e <code>k</code></li>
+              <li>Porque a intercalação usa um vetor auxiliar</li>
+              <li>Porque ele copia o vetor inteiro antes de começar</li>
+              <li>Não precisa: ele é O(1) em espaço</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="chapter" id="quick">
+      <h2>Quick Sort: ideia e exemplo</h2>
+      <p class="kicker-line">Ordenação por partição</p>
+      <p>Mais um algoritmo <strong>recursivo</strong> de dividir para conquistar, proposto por <strong>C. A. R. Hoare</strong> (1960). Entretanto, aqui é o contrário do Merge Sort: a <strong>fase de divisão é trabalhosa</strong>, enquanto a <strong>conquista é trivial</strong>.</p>
+      <h3>Ideia geral</h3>
+      <ol>
+        <li>Escolha um elemento da lista, denominado <strong>pivô</strong>.</li>
+        <li><strong>Particiona</strong>: rearranje a lista de forma que todos os elementos <strong>anteriores</strong> ao pivô sejam <strong>menores</strong> que ele, e todos os elementos <strong>posteriores</strong> sejam <strong>maiores</strong>. Ao fim do processo, o pivô estará em sua <strong>posição final</strong> e haverá duas sublistas <strong>não ordenadas</strong>. Essa operação é denominada <strong>partição</strong>.</li>
+        <li><strong>Recursivamente</strong> ordene a sublista dos elementos menores e a sublista dos elementos maiores.</li>
+      </ol>
+      <p>Não há "combinar": depois que as duas sublistas estão ordenadas, o vetor inteiro já está ordenado (menores | pivô | maiores).</p>
+      <h3>Exemplo: <code>6 5 3 1 8 7 2 4</code></h3>
+      <p>No código dos slides, o pivô é sempre o <strong>primeiro</strong> elemento do trecho (<code>vet[inicio]</code>). Na partição, <code>i</code> procura, da esquerda, alguém <strong>maior</strong> que o pivô; <code>j</code> procura, da direita, alguém <strong>menor ou igual</strong>. Quando os dois param, trocam.</p>
+      <p>Todas as partições, na ordem em que acontecem:</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>#</th><th>Chamada</th><th>Pivô</th><th>Vetor após a partição</th><th>Posição final do pivô</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td>—</td><td><span class="vec"><span class="vc">6</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">8</span><span class="vc">7</span><span class="vc">2</span><span class="vc">4</span></span></td><td>—</td></tr>
+            <tr><td class="trace-desc">1</td><td><code>quick_sort(vet, 0, 7)</code></td><td><code>6</code></td><td><span class="vec"><span class="vc">2</span><span class="vc">5</span><span class="vc">3</span><span class="vc">1</span><span class="vc">4</span><span class="vc p">6</span><span class="vc">7</span><span class="vc">8</span></span></td><td>5</td></tr>
+            <tr><td class="trace-desc">2</td><td><code>quick_sort(vet, 0, 4)</code></td><td><code>2</code></td><td><span class="vec"><span class="vc">1</span><span class="vc p">2</span><span class="vc">3</span><span class="vc">5</span><span class="vc">4</span><span class="vc s">6</span><span class="vc o">7</span><span class="vc o">8</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">3</td><td><code>quick_sort(vet, 2, 4)</code></td><td><code>3</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc s">2</span><span class="vc p">3</span><span class="vc">5</span><span class="vc">4</span><span class="vc s">6</span><span class="vc o">7</span><span class="vc o">8</span></span></td><td>2</td></tr>
+            <tr><td class="trace-desc">4</td><td><code>quick_sort(vet, 3, 4)</code></td><td><code>5</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc">4</span><span class="vc p">5</span><span class="vc s">6</span><span class="vc o">7</span><span class="vc o">8</span></span></td><td>4</td></tr>
+            <tr><td class="trace-desc">5</td><td><code>quick_sort(vet, 6, 7)</code></td><td><code>7</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc o">4</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc p">7</span><span class="vc">8</span></span></td><td>6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Repare que <strong>não existe passo de combinar</strong>: quando a última partição termina, o vetor está ordenado. As posições 0, 3 e 7 nunca foram pivô: são trechos de <strong>um</strong> elemento, que já estão no lugar.</p>
+    </section>
+
+    <!-- 08 -->
+    <section class="chapter" id="quick-codigo">
+      <h2>Quick Sort: código e características</h2>
+<pre><code><span class="tok-kw">void</span> troca(<span class="tok-kw">int</span> *a, <span class="tok-kw">int</span> *b) {
+    <span class="tok-kw">int</span> aux = *a;
+    *a = *b;
+    *b = aux;
+}</code></pre>
+<div class="keep">
+      <p><strong>Divisão: trabalhosa.</strong></p>
+<pre><code><span class="tok-kw">int</span> particao(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> inicio, <span class="tok-kw">int</span> fim) {
+    <span class="tok-kw">int</span> i = inicio + 1;
+    <span class="tok-kw">int</span> j = fim;
+    <span class="tok-kw">int</span> pivo = vet[inicio];
+
+    <span class="tok-kw">while</span> (i &lt;= j) {
+        <span class="tok-kw">while</span> (i &lt;= j &amp;&amp; vet[i] &lt;= pivo)
+            i++;
+        <span class="tok-kw">while</span> (j &gt; i &amp;&amp; vet[j] &gt; pivo)
+            j--;
+        <span class="tok-kw">if</span> (i &lt;= j) {
+            troca(&amp;vet[i], &amp;vet[j]);
+            i++;
+            j--;
+        }
+    }
+    troca(&amp;vet[inicio], &amp;vet[j]);
+    <span class="tok-kw">return</span> j;
+}</code></pre>
+</div>
+<div class="keep">
+      <p><strong>Conquista: trivial.</strong></p>
+<pre><code><span class="tok-kw">void</span> quick_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> inicio, <span class="tok-kw">int</span> fim) {
+    <span class="tok-kw">int</span> j = particao(vet, inicio, fim);
+    <span class="tok-kw">if</span> (inicio &lt; j - 1)
+        quick_sort(vet, inicio, j - 1);
+    <span class="tok-kw">if</span> (j + 1 &lt; fim)
+        quick_sort(vet, j + 1, fim);
+}</code></pre>
+</div>
+      <p>Chamada no <code>main</code>: <code>quick_sort(vet, 0, n - 1);</code>, com <code>n ≥ 1</code>.</p>
+      <ul>
+        <li><strong><code>troca</code></strong> recebe <strong>ponteiros</strong> (Unidade IV): <code>&amp;vet[i]</code> é o endereço da posição <code>i</code>, e a função troca os valores <strong>no próprio vetor</strong>.</li>
+        <li><strong><code>particao</code></strong>: o pivô é <code>vet[inicio]</code>. <code>i</code> avança enquanto encontra elementos <strong>≤ pivô</strong> (já estão do lado certo); <code>j</code> recua enquanto encontra elementos <strong>&gt; pivô</strong>. Se os dois pararam sem se cruzar, <code>vet[i]</code> e <code>vet[j]</code> estão do lado errado: troca. Quando se cruzam, <code>j</code> aponta para o <strong>último elemento ≤ pivô</strong>, e a troca final coloca o pivô <strong>entre as duas partes</strong>, na sua posição definitiva.</li>
+        <li><strong><code>quick_sort</code></strong>: particiona e chama a si mesma para <code>vet[inicio..j-1]</code> (menores) e <code>vet[j+1..fim]</code> (maiores). Os <code>if</code> evitam chamadas para trechos com <strong>0 ou 1</strong> elemento.</li>
+      </ul>
+      <h3>Características</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Caso</th><th>Complexidade</th><th>Quando acontece</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td class="trace-step">O(n²)</td><td>o pivô é sempre o <strong>menor</strong> ou o <strong>maior</strong> do trecho: com pivô = primeiro elemento, acontece com o vetor <strong>já ordenado</strong> (ou em ordem decrescente)</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td class="trace-step">Ω(n log n)</td><td>o pivô divide o trecho <strong>ao meio</strong> a cada partição</td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td class="trace-step">Θ(n log n)</td><td>vetor aleatório: as divisões são razoavelmente equilibradas</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="callout-label">Por que O(n²) no pior caso?</span>
+        <p>Com o vetor <code>1 2 3 4 5 6 7 8</code>, o pivô 1 já está no lugar: sobra <strong>um</strong> lado com 7 elementos. Depois o pivô 2 deixa 6, e assim por diante. São <code>n - 1</code> partições, com <code>7 + 6 + ... + 1 = 28 = n(n-1)/2</code> comparações: a mesma soma da Parte I.</p>
+      </div>
+      <ul>
+        <li><strong>Espaço</strong>: não usa vetor auxiliar, só a <strong>pilha da recursão</strong>: O(log n) no caso médio, O(n) no pior caso. Com <code>n</code> grande, o pior caso pode <strong>estourar a pilha</strong>.</li>
+        <li><strong>Não é estável</strong>: as trocas de longa distância podem inverter elementos iguais.</li>
+        <li>Apesar do pior caso, costuma ser o <strong>mais rápido na prática</strong>: suas operações são simples e ele acessa a memória de forma sequencial. Para evitar o pior caso, escolhe-se o pivô de forma mais esperta: o elemento do <strong>meio</strong>, um elemento <strong>aleatório</strong> ou a <strong>mediana de três</strong> (primeiro, meio e último).</li>
+      </ul>
+    </section>
+
+    <!-- 09 -->
+    <section class="chapter" id="comparacao">
+      <h2>Comparando os seis algoritmos</h2>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th></th><th>Insertion</th><th>Selection</th><th>Bubble</th><th>Shell</th><th>Merge</th><th>Quick</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Pior caso</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>desconhecido</td><td class="trace-changed">O(n&nbsp;log&nbsp;n)</td><td>O(n²)</td></tr>
+            <tr><td class="trace-desc">Melhor caso</td><td>Ω(n)</td><td>Ω(n²)</td><td>Ω(n)</td><td>—</td><td>Ω(n&nbsp;log&nbsp;n)</td><td>Ω(n&nbsp;log&nbsp;n)</td></tr>
+            <tr><td class="trace-desc">Caso médio</td><td>Θ(n²)</td><td>Θ(n²)</td><td>Θ(n²)</td><td>conj.&nbsp;O(n<sup>1,25</sup>)</td><td class="trace-changed">Θ(n&nbsp;log&nbsp;n)</td><td class="trace-changed">Θ(n&nbsp;log&nbsp;n)</td></tr>
+            <tr><td class="trace-desc">Espaço adicional</td><td>O(1)</td><td>O(1)</td><td>O(1)</td><td>O(1)</td><td>O(n)</td><td>O(log&nbsp;n)<br>(pilha)</td></tr>
+            <tr><td class="trace-desc">Estável?</td><td>sim</td><td>não</td><td>sim</td><td>não</td><td>sim</td><td>não</td></tr>
+            <tr><td class="trace-desc">Recursivo?</td><td>não</td><td>não</td><td>não</td><td>não</td><td>sim</td><td>sim</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Como escolher</h3>
+      <ul>
+        <li><strong>Vetor pequeno ou quase ordenado</strong>: Insertion Sort.</li>
+        <li><strong>Garantia de O(n log n)</strong> e estabilidade (por exemplo, ordenar registros por um segundo critério): Merge Sort, se houver memória.</li>
+        <li><strong>Mais rápido na média</strong>, sem memória extra: Quick Sort, com uma boa escolha de pivô.</li>
+        <li><strong>Simples, sem recursão e sem memória extra</strong>, bem melhor que O(n²): Shell Sort.</li>
+      </ul>
+      <div class="quiz-print" id="quiz-parte3">
+        <p class="quiz-print-title">Verifique seu entendimento — Parte 3 — Quick Sort e comparação <span>— confira as respostas no Gabarito, seção 11</span></p>
+        <ol class="qp-questions">
+          <li>
+            <p class="qp-question">Após a <strong>primeira partição</strong> do Quick Sort (pivô = primeiro elemento), o que se pode garantir?</p>
+            <ol class="qp-options">
+              <li>O vetor está ordenado</li>
+              <li>O pivô está na sua posição final, com menores ou iguais à esquerda e maiores à direita</li>
+              <li>As duas metades têm o mesmo tamanho</li>
+              <li>O menor elemento está na posição 0</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Com o código do roteiro, qual entrada provoca o <strong>pior caso</strong> do Quick Sort?</p>
+            <ol class="qp-options">
+              <li>Um vetor aleatório</li>
+              <li>Um vetor já ordenado</li>
+              <li>Um vetor com todos os elementos diferentes</li>
+              <li>Um vetor de tamanho par</li>
+            </ol>
+          </li>
+          <li>
+            <p class="qp-question">Você precisa ordenar 10 milhões de registros e <strong>não pode</strong> correr o risco de O(n²), mas tem memória sobrando. Qual algoritmo escolher?</p>
+            <ol class="qp-options">
+              <li>Quick Sort com pivô = primeiro elemento</li>
+              <li>Merge Sort</li>
+              <li>Bubble Sort</li>
+              <li>Selection Sort</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="chapter" id="exercicios">
+      <h2>Exercícios de laboratório</h2>
+      <p>Use as funções exatamente como apresentadas neste roteiro. Para testar, reaproveite <code>imprime</code> e a ideia de ordenar sempre uma <strong>cópia</strong> do vetor original (Parte I).</p>
+      <h3>Rastreando</h3>
+      <p><strong>1. Teste de mesa.</strong> Faça à mão, sem rodar o programa, a ordenação de <code>{6, 3, 8, 1, 5, 9, 2, 7}</code> pelos três algoritmos:</p>
+      <ul>
+        <li><strong>Shell</strong>: o vetor após cada valor de <code>h</code> (quais são os valores de <code>h</code> para <code>n = 8</code>?).</li>
+        <li><strong>Merge</strong>: o vetor após cada chamada de <code>merge</code>, na ordem em que acontecem (são 7).</li>
+        <li><strong>Quick</strong>: para cada chamada de <code>quick_sort</code>, o pivô, o vetor após a partição e a posição final do pivô.</li>
+      </ul>
+      <p>Depois coloque <code>printf</code>s nas funções e confira.</p>
+      <p><strong>2. Rastreando a recursão.</strong> Acrescente um parâmetro <code>int nivel</code> a <code>merge_sort</code> e a <code>quick_sort</code> (a chamada inicial passa <code>0</code> e as recursivas <code>nivel + 1</code>) e imprima, com <code>2 * nivel</code> espaços de recuo, os índices <code>inicio</code> e <code>fim</code> de cada chamada. Desenhe a <strong>árvore de recursão</strong> dos dois algoritmos para o vetor do exercício 1. Por que no Merge o <code>merge</code> acontece <strong>depois</strong> das chamadas filhas, e no Quick a partição acontece <strong>antes</strong>?</p>
+      <p><strong>3. Corrigindo o Shell Sort.</strong> Comprove o laço infinito do <code>shell_sort</code> com <code>n = 1</code> e corrija a função. Existe outra forma de escrever o laço, sem <code>do-while</code>, que funcione para qualquer <code>n ≥ 0</code>?</p>
+      <h3>Medindo</h3>
+      <p><strong>4. Contando o trabalho.</strong> Use as variáveis globais <code>long comparacoes, movimentos;</code> (como na Parte I) nos três algoritmos desta parte e no Insertion Sort. Para <code>n = 10.000</code>, com vetores <strong>crescente</strong>, <strong>decrescente</strong> e <strong>aleatório</strong> (<code>srand(42)</code>), preencha a tabela:</p>
+      <div class="trace-wrap">
+        <table class="trace-table fill-table">
+          <thead><tr><th>Algoritmo</th><th>Crescente<br>comp. / mov.</th><th>Aleatório<br>comp. / mov.</th><th>Decrescente<br>comp. / mov.</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Insertion</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Shell</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Merge</td><td></td><td></td><td></td></tr>
+            <tr><td class="trace-desc">Quick</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Compare com <code>n²/2 = 50.000.000</code> e com <code>n log₂ n ≈ 133.000</code>. O que acontece com o Quick Sort no vetor crescente?</p>
+      <p><strong>5. Cronometrando.</strong> Meça com <code>clock()</code> o tempo dos três algoritmos e do Insertion Sort com vetores aleatórios de 10.000, 20.000, 40.000, ..., 1.280.000 elementos, alocados com <code>malloc</code>. Pare o Insertion quando ele passar de 10 segundos. Para cada tamanho, divida o tempo pelo do tamanho anterior: a razão se aproxima de <strong>4</strong> (O(n²)) ou de <strong>pouco mais que 2</strong> (O(n log n))? Grave em <code>resultados.csv</code> e faça o gráfico tempo × n.</p>
+      <p><strong>6. A sequência de h importa.</strong> Troque a sequência de Knuth pela original de Shell (<code>h = n/2, n/4, ..., 1</code>) e compare as comparações e o tempo para <code>n = 100.000</code> aleatório. Qual foi melhor?</p>
+      <h3>Aplicando</h3>
+      <p><strong>7. Fugindo do pior caso.</strong> Modifique <code>particao</code> para usar como pivô o elemento do <strong>meio</strong> do trecho: antes de tudo, troque <code>vet[inicio]</code> com <code>vet[(inicio + fim) / 2]</code> e mantenha o resto do código. Repita a medição do exercício 4 com o vetor crescente. O que mudou?</p>
+      <p><strong>8. Ordenando structs com estabilidade.</strong> Adapte o Merge Sort para ordenar um vetor de <code>Aluno</code> (RA, nome, nota; Unidade V). Ordene primeiro pelo <strong>nome</strong> e depois, com o Merge Sort, pela <strong>nota</strong> (decrescente). Alunos com a mesma nota continuam em ordem alfabética? Repita com o Quick Sort e explique a diferença.</p>
+      <h3>9. Desafio: ordenando um arquivo grande</h3>
+      <p>Gere um arquivo <code>numeros.txt</code> com 1.000.000 de inteiros aleatórios (Unidade VI). Leia-o para um vetor alocado com <code>malloc</code>, ordene com Merge Sort e Quick Sort, grave <code>numeros_ordenados.txt</code> e informe o tempo de cada etapa (leitura, ordenação, escrita). Quanto tempo o Insertion Sort levaria, estimando pelo exercício 5? Atenção: o <code>aux</code> do <code>merge</code> fica na pilha; com <code>n</code> grande, aloque um único vetor auxiliar com <code>malloc</code> e passe-o como parâmetro.</p>
+      <h3>Resumo da unidade</h3>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Conceito</th><th>Resumo</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">Shell Sort</td><td>Insertion Sort com saltos <code>h</code> decrescentes até 1; o vetor fica h-ordenado a cada passada</td></tr>
+            <tr><td class="trace-desc">Sequência de Knuth</td><td><code>h = 3h + 1</code>: 1, 4, 13, 40, 121, ...; <code>h</code> não deve ser múltiplo do anterior</td></tr>
+            <tr><td class="trace-desc">Complexidade do Shell</td><td>desconhecida; conjecturas O(n<sup>1,25</sup>) e O(n (ln n)²)</td></tr>
+            <tr><td class="trace-desc">Dividir para conquistar</td><td>dividir em subproblemas menores do mesmo tipo, resolver recursivamente, combinar</td></tr>
+            <tr><td class="trace-desc">Merge Sort</td><td>divisão trivial (meio), conquista trabalhosa (intercalar) · O(n log n) em todos os casos · espaço O(n) · estável</td></tr>
+            <tr><td class="trace-desc">Quick Sort</td><td>divisão trabalhosa (partição em torno do pivô), conquista trivial · Θ(n log n) na média, O(n²) no pior caso</td></tr>
+            <tr><td class="trace-desc">Pior caso do Quick</td><td>pivô sempre o menor ou o maior: vetor já ordenado com pivô = primeiro elemento</td></tr>
+            <tr><td class="trace-desc">O(n log n) na prática</td><td>dobrar <code>n</code> ⇒ pouco mais que dobrar o tempo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="chapter" id="gabarito">
+      <h2>Gabarito dos exercícios</h2>
+      <p>Respostas dos quizzes "Verifique seu entendimento" de cada parte, com a justificativa da alternativa correta, e as respostas dos exercícios 1 e 3.</p>
+
+      <div class="gabarito-group">
+        <h3>Parte 1 — Shell Sort</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) O Shell Sort é um Insertion Sort aplicado com saltos h que diminuem até 1</span><span class="gab-explain">— O corpo do for é o Insertion Sort com 1 trocado por h. A última passada, com h = 1, é exatamente o Insertion Sort da Parte I.</span></li>
+          <li><span class="gab-answer">2. c) 40, 13, 4, 1</span><span class="gab-explain">— O while gera 1, 4, 13, 40, 121 e para em 121 (primeiro ≥ 100). O do-while começa com (121 − 1) / 3 = 40 e segue 13, 4, 1.</span></li>
+          <li><span class="gab-answer">3. c) Não é conhecida com exatidão; há conjecturas como O(n^1,25)</span><span class="gab-explain">— A análise depende de problemas matemáticos difíceis e da sequência de h. Para Knuth, há conjecturas (ainda não provadas) como O(n^1,25).</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 2 — Dividir para conquistar e Merge Sort</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) Na intercalação (merge), na volta da recursão</span><span class="gab-explain">— Dividir é só calcular meio = (inicio + fim) / 2. O trabalho de comparar e copiar está no merge, executado depois das chamadas recursivas.</span></li>
+          <li><span class="gab-answer">2. b) 10</span><span class="gab-explain">— Cada nível divide o tamanho por 2: 1024 → 512 → ... → 1 são log₂ 1024 = 10 níveis.</span></li>
+          <li><span class="gab-answer">3. b) Porque a intercalação usa um vetor auxiliar</span><span class="gab-explain">— Intercalar no próprio vetor sobrescreveria elementos ainda não usados; por isso o merge copia para aux e depois devolve. Na intercalação final, aux tem quase n posições.</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Parte 3 — Quick Sort e comparação</h3>
+        <ol class="gabarito-list">
+          <li><span class="gab-answer">1. b) O pivô está na sua posição final, com menores ou iguais à esquerda e maiores à direita</span><span class="gab-explain">— A partição só garante a posição do pivô e o lado de cada elemento. Os dois lados continuam desordenados e podem ter tamanhos bem diferentes.</span></li>
+          <li><span class="gab-answer">2. b) Um vetor já ordenado</span><span class="gab-explain">— Com o vetor ordenado, o pivô (primeiro elemento) é sempre o menor do trecho: um lado fica vazio e o outro com n − 1 elementos, e as comparações somam n(n−1)/2.</span></li>
+          <li><span class="gab-answer">3. b) Merge Sort</span><span class="gab-explain">— O Merge Sort é O(n log n) em todos os casos; o custo é a memória auxiliar O(n), que aqui não é problema. O Quick tem pior caso O(n²); Bubble e Selection são sempre O(n²).</span></li>
+        </ol>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Exercício 1 — teste de mesa de <code>{6, 3, 8, 1, 5, 9, 2, 7}</code></h3>
+        <p><strong>Shell Sort</strong> (para <code>n = 8</code>: <code>h = 4</code> e <code>h = 1</code>)</p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>Passada</th><th>Vetor após a passada</th><th>Comparações</th><th>Deslocamentos</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td><span class="vec"><span class="vc">6</span><span class="vc">3</span><span class="vc">8</span><span class="vc">1</span><span class="vc">5</span><span class="vc">9</span><span class="vc">2</span><span class="vc">7</span></span></td><td>—</td><td>—</td></tr>
+            <tr><td class="trace-desc">h = 4</td><td><span class="vec"><span class="vc c">5</span><span class="vc">3</span><span class="vc c">2</span><span class="vc">1</span><span class="vc c">6</span><span class="vc">9</span><span class="vc c">8</span><span class="vc">7</span></span></td><td>4</td><td>2</td></tr>
+            <tr><td class="trace-desc">h = 1</td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc s">9</span></span></td><td>13</td><td>9</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td><strong>17</strong></td><td><strong>11</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p><strong>Merge Sort</strong></p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>#</th><th>Chamada</th><th>Vetor após o merge</th><th>Comparações</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td><span class="vec"><span class="vc">6</span><span class="vc">3</span><span class="vc">8</span><span class="vc">1</span><span class="vc">5</span><span class="vc">9</span><span class="vc">2</span><span class="vc">7</span></span></td><td>—</td></tr>
+            <tr><td class="trace-desc">1</td><td><code>merge(vet, 0, 0, 1)</code></td><td><span class="vec"><span class="vc s">3</span><span class="vc s">6</span><span class="vc o">8</span><span class="vc o">1</span><span class="vc o">5</span><span class="vc o">9</span><span class="vc o">2</span><span class="vc o">7</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">2</td><td><code>merge(vet, 2, 2, 3)</code></td><td><span class="vec"><span class="vc o">3</span><span class="vc o">6</span><span class="vc s">1</span><span class="vc s">8</span><span class="vc o">5</span><span class="vc o">9</span><span class="vc o">2</span><span class="vc o">7</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">3</td><td><code>merge(vet, 0, 1, 3)</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">3</span><span class="vc s">6</span><span class="vc s">8</span><span class="vc o">5</span><span class="vc o">9</span><span class="vc o">2</span><span class="vc o">7</span></span></td><td>3</td></tr>
+            <tr><td class="trace-desc">4</td><td><code>merge(vet, 4, 4, 5)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">6</span><span class="vc o">8</span><span class="vc s">5</span><span class="vc s">9</span><span class="vc o">2</span><span class="vc o">7</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">5</td><td><code>merge(vet, 6, 6, 7)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">6</span><span class="vc o">8</span><span class="vc o">5</span><span class="vc o">9</span><span class="vc s">2</span><span class="vc s">7</span></span></td><td>1</td></tr>
+            <tr><td class="trace-desc">6</td><td><code>merge(vet, 4, 5, 7)</code></td><td><span class="vec"><span class="vc o">1</span><span class="vc o">3</span><span class="vc o">6</span><span class="vc o">8</span><span class="vc s">2</span><span class="vc s">5</span><span class="vc s">7</span><span class="vc s">9</span></span></td><td>3</td></tr>
+            <tr><td class="trace-desc">7</td><td><code>merge(vet, 0, 3, 7)</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc s">2</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc s">7</span><span class="vc s">8</span><span class="vc s">9</span></span></td><td>7</td></tr>
+            <tr class="total-row"><td class="trace-desc"><strong>Total</strong></td><td></td><td></td><td><strong>17</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p><strong>Quick Sort</strong></p>
+      <div class="trace-wrap">
+        <table class="trace-table">
+          <thead><tr><th>#</th><th>Chamada</th><th>Pivô</th><th>Vetor após a partição</th><th>Posição final do pivô</th></tr></thead>
+          <tbody>
+            <tr><td class="trace-desc">início</td><td>—</td><td>—</td><td><span class="vec"><span class="vc">6</span><span class="vc">3</span><span class="vc">8</span><span class="vc">1</span><span class="vc">5</span><span class="vc">9</span><span class="vc">2</span><span class="vc">7</span></span></td><td>—</td></tr>
+            <tr><td class="trace-desc">1</td><td><code>quick_sort(vet, 0, 7)</code></td><td><code>6</code></td><td><span class="vec"><span class="vc">5</span><span class="vc">3</span><span class="vc">2</span><span class="vc">1</span><span class="vc p">6</span><span class="vc">9</span><span class="vc">8</span><span class="vc">7</span></span></td><td>4</td></tr>
+            <tr><td class="trace-desc">2</td><td><code>quick_sort(vet, 0, 3)</code></td><td><code>5</code></td><td><span class="vec"><span class="vc">1</span><span class="vc">3</span><span class="vc">2</span><span class="vc p">5</span><span class="vc s">6</span><span class="vc o">9</span><span class="vc o">8</span><span class="vc o">7</span></span></td><td>3</td></tr>
+            <tr><td class="trace-desc">3</td><td><code>quick_sort(vet, 0, 2)</code></td><td><code>1</code></td><td><span class="vec"><span class="vc p">1</span><span class="vc">3</span><span class="vc">2</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc o">9</span><span class="vc o">8</span><span class="vc o">7</span></span></td><td>0</td></tr>
+            <tr><td class="trace-desc">4</td><td><code>quick_sort(vet, 1, 2)</code></td><td><code>3</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc">2</span><span class="vc p">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc o">9</span><span class="vc o">8</span><span class="vc o">7</span></span></td><td>2</td></tr>
+            <tr><td class="trace-desc">5</td><td><code>quick_sort(vet, 5, 7)</code></td><td><code>9</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc o">2</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc">7</span><span class="vc">8</span><span class="vc p">9</span></span></td><td>7</td></tr>
+            <tr><td class="trace-desc">6</td><td><code>quick_sort(vet, 5, 6)</code></td><td><code>7</code></td><td><span class="vec"><span class="vc s">1</span><span class="vc o">2</span><span class="vc s">3</span><span class="vc s">5</span><span class="vc s">6</span><span class="vc p">7</span><span class="vc">8</span><span class="vc s">9</span></span></td><td>5</td></tr>
+          </tbody>
+        </table>
+      </div>
+        <p>Totais: Shell, 17 comparações e 11 deslocamentos; Merge, 17 comparações; Quick, 6 partições. Na primeira partição do Quick, o pivô 6 caiu na posição 4, dividindo o vetor em lados de 4 e 3 elementos: uma divisão equilibrada.</p>
+      </div>
+
+      <div class="gabarito-group">
+        <h3>Exercício 3 — corrigindo o Shell Sort</h3>
+        <p>Calcule o maior <code>h</code> da sequência menor que <code>n</code> e use um <code>while</code> que testa antes de executar. Para <code>n = 0</code> ou <code>n = 1</code>, a passada com <code>h = 1</code> não faz nada e <code>h</code> vira 0, encerrando o laço:</p>
+<pre><code><span class="tok-kw">void</span> shell_sort(<span class="tok-kw">int</span> vet[], <span class="tok-kw">int</span> n) {
+    <span class="tok-kw">int</span> i, j, h, aux;
+
+    h = 1;
+    <span class="tok-kw">while</span> (3 * h + 1 &lt; n)
+        h = 3 * h + 1;
+
+    <span class="tok-kw">while</span> (h &gt;= 1) {
+        <span class="tok-kw">for</span> (i = h; i &lt; n; i++) {
+            aux = vet[i];
+            j = i;
+            <span class="tok-kw">while</span> (j &gt;= h &amp;&amp; vet[j - h] &gt; aux) {
+                vet[j] = vet[j - h];
+                j -= h;
+            }
+            vet[j] = aux;
+        }
+        h = (h - 1) / 3;
+    }
+}</code></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Unidade VII — Métodos de Ordenação e Pesquisa (Parte II) · Laboratório de Técnicas de Programação · Versão para impressão</p>
+  </footer>
+</div>
+
+</body>
+</html>
